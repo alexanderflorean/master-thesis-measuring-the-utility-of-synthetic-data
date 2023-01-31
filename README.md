@@ -11,3 +11,7 @@ master-thesis-vt23/
 |- Makefile		# automization of tasks
 |- requirements.txt	# project dependencies
 
+## Set-up jupyter kernel environment right
+Run the following in the wanted environment:
+`pip install ipykernel`
+`python -m ipykernel install --user --name ENVNAME --display-name "Python (whatever you want to call it)"`
