@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/2/88f794e1259c476c92fae1eb0209caa0/artifacts
+end_time: 1675779970022
+entry_point_name: ''
+experiment_id: '2'
+lifecycle_stage: active
+run_id: 88f794e1259c476c92fae1eb0209caa0
+run_name: Naive Bayes
+run_uuid: 88f794e1259c476c92fae1eb0209caa0
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1675779969874
+status: 3
+tags: []
+user_id: flore

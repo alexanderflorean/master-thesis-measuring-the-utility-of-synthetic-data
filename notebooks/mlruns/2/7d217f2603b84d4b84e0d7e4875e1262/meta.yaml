@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/2/7d217f2603b84d4b84e0d7e4875e1262/artifacts
+end_time: 1675779972406
+entry_point_name: ''
+experiment_id: '2'
+lifecycle_stage: active
+run_id: 7d217f2603b84d4b84e0d7e4875e1262
+run_name: Decision Tree Classifier
+run_uuid: 7d217f2603b84d4b84e0d7e4875e1262
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1675779972237
+status: 3
+tags: []
+user_id: flore

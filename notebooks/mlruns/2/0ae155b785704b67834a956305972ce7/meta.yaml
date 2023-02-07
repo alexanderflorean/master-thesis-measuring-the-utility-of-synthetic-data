@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/2/0ae155b785704b67834a956305972ce7/artifacts
+end_time: 1675779971549
+entry_point_name: ''
+experiment_id: '2'
+lifecycle_stage: active
+run_id: 0ae155b785704b67834a956305972ce7
+run_name: K Neighbors Classifier
+run_uuid: 0ae155b785704b67834a956305972ce7
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1675779971375
+status: 3
+tags: []
+user_id: flore

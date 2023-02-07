@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/2/7f9bdd6615924bbf9416043515569591/artifacts
+end_time: 1675780138807
+entry_point_name: ''
+experiment_id: '2'
+lifecycle_stage: active
+run_id: 7f9bdd6615924bbf9416043515569591
+run_name: Linear Discriminant Analysis
+run_uuid: 7f9bdd6615924bbf9416043515569591
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1675780138362
+status: 3
+tags: []
+user_id: flore

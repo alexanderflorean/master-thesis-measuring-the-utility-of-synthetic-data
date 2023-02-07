@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/2/4eca985621ad4a2fb8d182eba130b274/artifacts
+end_time: 1675779970414
+entry_point_name: ''
+experiment_id: '2'
+lifecycle_stage: active
+run_id: 4eca985621ad4a2fb8d182eba130b274
+run_name: Light Gradient Boosting Machine
+run_uuid: 4eca985621ad4a2fb8d182eba130b274
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1675779970234
+status: 3
+tags: []
+user_id: flore
