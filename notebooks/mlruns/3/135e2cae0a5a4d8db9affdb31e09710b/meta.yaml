@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/3/135e2cae0a5a4d8db9affdb31e09710b/artifacts
+end_time: 1676004513586
+entry_point_name: ''
+experiment_id: '3'
+lifecycle_stage: active
+run_id: 135e2cae0a5a4d8db9affdb31e09710b
+run_name: Quadratic Discriminant Analysis
+run_uuid: 135e2cae0a5a4d8db9affdb31e09710b
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676004513440
+status: 3
+tags: []
+user_id: flore

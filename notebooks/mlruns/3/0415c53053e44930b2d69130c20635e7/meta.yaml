@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/3/0415c53053e44930b2d69130c20635e7/artifacts
+end_time: 1676004067371
+entry_point_name: ''
+experiment_id: '3'
+lifecycle_stage: active
+run_id: 0415c53053e44930b2d69130c20635e7
+run_name: Logistic Regression
+run_uuid: 0415c53053e44930b2d69130c20635e7
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676004067225
+status: 3
+tags: []
+user_id: flore
