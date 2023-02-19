@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/2/ec01f497f01b4ac7a3ef5440f40a6bbb/artifacts
+end_time: 1676554955396
+entry_point_name: ''
+experiment_id: '2'
+lifecycle_stage: active
+run_id: ec01f497f01b4ac7a3ef5440f40a6bbb
+run_name: Ridge Classifier
+run_uuid: ec01f497f01b4ac7a3ef5440f40a6bbb
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676554955071
+status: 3
+tags: []
+user_id: flore

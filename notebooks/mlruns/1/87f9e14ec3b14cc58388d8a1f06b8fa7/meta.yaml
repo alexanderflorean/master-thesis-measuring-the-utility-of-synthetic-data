@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/1/87f9e14ec3b14cc58388d8a1f06b8fa7/artifacts
+end_time: 1676510268366
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+run_id: 87f9e14ec3b14cc58388d8a1f06b8fa7
+run_name: str
+run_uuid: 87f9e14ec3b14cc58388d8a1f06b8fa7
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676510268191
+status: 3
+tags: []
+user_id: flore

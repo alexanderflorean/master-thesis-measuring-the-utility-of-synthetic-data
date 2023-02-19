@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/1/4e501ce637144a0bab2110338436f009/artifacts
+end_time: 1676507628317
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+run_id: 4e501ce637144a0bab2110338436f009
+run_name: Ada Boost Classifier
+run_uuid: 4e501ce637144a0bab2110338436f009
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676507628137
+status: 3
+tags: []
+user_id: flore

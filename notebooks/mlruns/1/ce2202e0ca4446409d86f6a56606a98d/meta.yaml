@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/1/ce2202e0ca4446409d86f6a56606a98d/artifacts
+end_time: 1676510647817
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+run_id: ce2202e0ca4446409d86f6a56606a98d
+run_name: SVM - Linear Kernel
+run_uuid: ce2202e0ca4446409d86f6a56606a98d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676510647650
+status: 3
+tags: []
+user_id: flore

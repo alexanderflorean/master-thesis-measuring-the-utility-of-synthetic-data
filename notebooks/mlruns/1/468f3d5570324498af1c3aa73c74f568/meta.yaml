@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/1/468f3d5570324498af1c3aa73c74f568/artifacts
+end_time: 1676511459713
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+run_id: 468f3d5570324498af1c3aa73c74f568
+run_name: Gaussian Process Classifier
+run_uuid: 468f3d5570324498af1c3aa73c74f568
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676511459520
+status: 3
+tags: []
+user_id: flore

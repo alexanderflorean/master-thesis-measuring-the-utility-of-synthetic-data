@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/1/0a3b9b9753094afcb0f619219d9f2215/artifacts
+end_time: 1676510269749
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+run_id: 0a3b9b9753094afcb0f619219d9f2215
+run_name: Dummy Classifier
+run_uuid: 0a3b9b9753094afcb0f619219d9f2215
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676510269634
+status: 3
+tags: []
+user_id: flore

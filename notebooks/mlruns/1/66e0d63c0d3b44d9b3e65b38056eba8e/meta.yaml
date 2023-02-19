@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/1/66e0d63c0d3b44d9b3e65b38056eba8e/artifacts
+end_time: 1676508493571
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+run_id: 66e0d63c0d3b44d9b3e65b38056eba8e
+run_name: Extreme Gradient Boosting
+run_uuid: 66e0d63c0d3b44d9b3e65b38056eba8e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676508493349
+status: 3
+tags: []
+user_id: flore

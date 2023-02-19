@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/1/175a6f70e57d40e5936ff114e2c0c6df/artifacts
+end_time: 1676426484101
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+run_id: 175a6f70e57d40e5936ff114e2c0c6df
+run_name: Extra Trees Classifier
+run_uuid: 175a6f70e57d40e5936ff114e2c0c6df
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676426483956
+status: 3
+tags: []
+user_id: flore

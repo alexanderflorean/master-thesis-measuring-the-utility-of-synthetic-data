@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/1/9b058ba2249b46c3b6b00ac9e9b38302/artifacts
+end_time: 1676507627945
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+run_id: 9b058ba2249b46c3b6b00ac9e9b38302
+run_name: Gradient Boosting Classifier
+run_uuid: 9b058ba2249b46c3b6b00ac9e9b38302
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676507627366
+status: 3
+tags: []
+user_id: flore

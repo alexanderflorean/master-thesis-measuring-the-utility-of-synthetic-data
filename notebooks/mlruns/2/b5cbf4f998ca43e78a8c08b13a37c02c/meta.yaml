@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/flore/source/repos/master-thesis-vt23/notebooks/mlruns/2/b5cbf4f998ca43e78a8c08b13a37c02c/artifacts
+end_time: 1676557594335
+entry_point_name: ''
+experiment_id: '2'
+lifecycle_stage: active
+run_id: b5cbf4f998ca43e78a8c08b13a37c02c
+run_name: Random Forest Classifier
+run_uuid: b5cbf4f998ca43e78a8c08b13a37c02c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1676557593986
+status: 3
+tags: []
+user_id: flore
