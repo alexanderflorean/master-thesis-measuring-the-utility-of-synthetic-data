@@ -1,0 +1,15 @@
+---
+# This config file contains variables for the experiment that are datset 
+  # independent (i.e. not specific to any dataset), Such as directory paths, 
+  # or quantity of synthetic datasets to generate
+
+# Directory paths for folders used in the experiment (from the 'notebooks' directory)
+folders:    
+    log_dir:       "../logs/"              # for logging data for each specific dataset
+    data_dir:      "../data/"              # datasets
+    pickles_dir:   "../pickles/"           # for saved pickle objects:
+    models_dir:    "../pickles/models/"      # contains the saved models as pickles
+    SDGs_dir:      "../pickles/SDGs/"        # contains the trained SDG for each setting
+    settings_dir:  "../pickles/settings/"    # contains the dataset specific settings for the experiments
+
+...
