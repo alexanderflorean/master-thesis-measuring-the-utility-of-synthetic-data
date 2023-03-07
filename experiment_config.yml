@@ -3,13 +3,40 @@
   # independent (i.e. not specific to any dataset), Such as directory paths, 
   # or quantity of synthetic datasets to generate
 
-# Directory paths for folders used in the experiment (from the 'notebooks' directory)
+# Directory paths for the folders used in the experiment (relative to the 'notebooks' directory)
 folders:    
     log_dir:       "../logs/"              # for logging data for each specific dataset
+
     data_dir:      "../data/"              # datasets
+    sd_dir:        "../data/synthetic/"       # synthetic dataset
+    real_dir:      "../data/real/"            # the original datasets, real data
+    train_dir:     "../data/train/"           # train data for models built on original data
+    test_dir:      "../data/test/"            # the hold-out data for testing from the original/real datset
+
     pickles_dir:   "../pickles/"           # for saved pickle objects:
     models_dir:    "../pickles/models/"      # contains the saved models as pickles
     SDGs_dir:      "../pickles/SDGs/"        # contains the trained SDG for each setting
     settings_dir:  "../pickles/settings/"    # contains the dataset specific settings for the experiments
+    setup_dir:  "../pickles/pycaret_setup/"  # contains the dataset specific pycaret settings for the experiments
+
+# choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
+ml_models: ['lr',         # Logistic Regression
+            'knn',        # K-Nearest Neighbor
+            'nb',         # Naive Bayes
+            'svm',        # Support Vector Machines
+            'rbfsvm',     # SVM - radial basis function kernel
+            #'gpc',        # Gaussian Process Classifier
+            # 'mlp',      # Multilayer Perceptron  TODO: fix  some error exceeding optimization ...
+            # 'ridge',    # Ridge Classifier TODO: some error shows up when ridge gets choosen
+            'rf',         # Random Forest
+            #'dt',         # Decision Tree Classifier
+            #'et',         # Extra Trees Classifier
+            #'qda',        # Quadratic Discriminant Analysis
+            #'ada',        # Ada Boost Clasifier
+            #'gbc',        # Gradient Boosting Classifier
+            #'lda',        # Linear Dicriminant Analysis
+            #'xgboost',    # Extreme Gradient Boosting
+            #'lightgbm'    #Light Gradient Boosting Machine
+            ]   
 
 ...
