@@ -19,25 +19,47 @@ folders:
     settings_dir:  "../pickles/settings/"    # contains the dataset specific settings for the experiments
     setup_dir:  "../pickles/pycaret_setup/"  # contains the dataset specific pycaret settings for the experiments
 
-# choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
-ml_models: ['lr',         # Logistic Regression
-            'knn',        # K-Nearest Neighbor
-            'nb',         # Naive Bayes
-            'svm',        # Support Vector Machines
-            'rbfsvm',     # SVM - radial basis function kernel
-            #'gpc',        # Gaussian Process Classifier
-            # 'mlp',      # Multilayer Perceptron  TODO: fix  some error exceeding optimization ...
-            # 'ridge',    # Ridge Classifier TODO: some error shows up when ridge gets choosen
-            'rf',         # Random Forest
-            #'dt',         # Decision Tree Classifier
-            #'et',         # Extra Trees Classifier
-            #'qda',        # Quadratic Discriminant Analysis
-            #'ada',        # Ada Boost Clasifier
-            #'gbc',        # Gradient Boosting Classifier
-            #'lda',        # Linear Dicriminant Analysis
-            #'xgboost',    # Extreme Gradient Boosting
-            #'lightgbm'    #Light Gradient Boosting Machine
-            ]   
+clf:    # Settings for classification modelling
+    # choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
+    ml_models: ['lr',         # Logistic Regression
+                'knn',        # K-Nearest Neighbor
+                'nb',         # Naive Bayes
+                'svm',        # Support Vector Machines
+                'rbfsvm',     # SVM - radial basis function kernel
+                #'gpc',        # Gaussian Process Classifier
+                # 'mlp',      # Multilayer Perceptron  TODO: fix  some error exceeding optimization ...
+                # 'ridge',    # Ridge Classifier TODO: some error shows up when ridge gets choosen
+                'rf',         # Random Forest
+                #'dt',         # Decision Tree Classifier
+                #'et',         # Extra Trees Classifier
+                #'qda',        # Quadratic Discriminant Analysis
+                #'ada',        # Ada Boost Clasifier
+                #'gbc',        # Gradient Boosting Classifier
+                #'lda',        # Linear Dicriminant Analysis
+                #'xgboost',    # Extreme Gradient Boosting
+                #'lightgbm'    #Light Gradient Boosting Machine
+                ]   
+    tuning_param:  # TODO: further include more relevant parameters
+        n_iter: 10             # Number of iterations to run the tune_model, i.e. n_iter paramter
+        optimize: 'Accuracy'   # The target metric to optimize against
 
-#
+
+# CTGAN hyperparameters
+ctgan_param:
+    quality_params:     # a list of parameters set to generate synthetic data of varying qualities
+        Q1:
+          epochs: 300
+          batch_size: 50
+            #Q2:    # Commented out for now
+            #epochs: 50
+            #batch_size: 20
+            #Q3:
+            #epochs: 250
+            #batch_size: 500
+            #Q4:
+            #epochs: 1250
+            #batch_size: 1000
+    # (int), how many samples to generate by factor of the sample size of the original dataset
+    sd_size_factor: 1   
+    num_sd: 2  # how many copies of SDG and synthetic datasets to create for each setting 
 ...

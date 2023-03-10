@@ -37,3 +37,17 @@ def getExperimentConfig():
         config = yaml.safe_load(file)
 
     return config
+
+def run_pycaret_setup(data_path: str, setup_param: dict):
+    """
+        run_setup(**dataset_settings[i])
+        
+            sends the correct params to the pycaret setup() function and 
+            returns the return value.
+            
+            Enables iterative run of the settings.
+    """
+    pycaret_setup = setup(
+        data = pd.read_csv(data_path),
+        **setup_param )
+    return pycaret_setup
