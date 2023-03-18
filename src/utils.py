@@ -39,15 +39,14 @@ def getExperimentConfig():
     return config
 
 def run_pycaret_setup(data_path: str, setup_param: dict):
-    """
-        run_setup(**dataset_settings[i])
-        
+    """     A wrapper function for the experiment to run pycaret setup()
+
             sends the correct params to the pycaret setup() function and 
-            returns the return value.
-            
-            Enables iterative run of the settings.
+            returns its return value.
+            Thus enabling iterative runs of the settings.
     """
     pycaret_setup = setup(
         data = pd.read_csv(data_path),
-        **setup_param )
+        **setup_param 
+    )
     return pycaret_setup
