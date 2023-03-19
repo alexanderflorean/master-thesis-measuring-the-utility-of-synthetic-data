@@ -7,7 +7,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.cluster import KMeans
 from kmodes.kprototypes import KPrototypes
 
-
+### Start - pMSE & S_pMSE
 def compute_propensity(original_data, synthetic_data):
     """     Uses the CART model from sklearn to compute the popensity 
             of predicting the synthetic data, i.e. the pobability that 
@@ -99,8 +99,10 @@ def S_pMSE(original_data, synthetic_data):
     S_pMSE_score = (pMSE_score - sim_pMSE) / std_pMSE
     
     return S_pMSE_score
+### End - pMSE & S_pMSE
 
 
+### Start - Cluster analysis
 def calculate_cluster_weight(weights, 
                              cluster_id, 
                              target_cluster_data_count, 
@@ -227,4 +229,4 @@ def cluster_analysis_metric(original_data,
 
     Uc /= num_clusters
     return Uc
-
+### End - Cluster analysis

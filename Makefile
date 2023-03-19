@@ -30,4 +30,4 @@ install:
 	@conda create --name $(CONDA_ENV_NAME) --file ./$(ENV_DIR)/$(ENV_FILENAME)
 
 test:
-	@pytest
+	run pytest

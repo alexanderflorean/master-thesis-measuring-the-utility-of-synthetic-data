@@ -48,18 +48,18 @@ clf:    # Settings for classification modelling
 ctgan_param:
     quality_params:     # a list of parameters set to generate synthetic data of varying qualities
         Q1:
-          epochs: 300
-          batch_size: 50
+          epochs: 10
+          batch_size: 20
             #Q2:    # Commented out for now
             #epochs: 50
             #batch_size: 20
-            #Q3:
-            #epochs: 250
-            #batch_size: 500
+        Q3:
+          epochs: 300
+          batch_size: 50
             #Q4:
             #epochs: 1250
             #batch_size: 1000
     # (int), how many samples to generate by factor of the sample size of the original dataset
     sd_size_factor: 1   
-    num_sd: 2  # how many copies of SDG and synthetic datasets to create for each setting 
+    num_sd: 1  # how many copies of SDG and synthetic datasets to create for each setting 
 ...
