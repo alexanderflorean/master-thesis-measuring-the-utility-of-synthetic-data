@@ -1,33 +1,38 @@
 CONDA_ENV_NAME = master
+PYTHON_VERSION = $(shell python --version)
 
 #Folders
 MLFLOW_LOG_DIR = notebooks/mlruns
+#Folders
 SYS_LOG_DIR = logs
-ENV_DIR = env
 
 #Filenames
-ENV_FILENAME = environment.yaml
+REQ_FILENAME = requirements.yaml
 
-# Todo: doesn't work yet on windows
-activate-env:
+# Todo: Fix on windows
+actv:
 	@conda activate $(CONDA_ENV_NAME)
 
-# Todo: doesn't work yet on windows
+# Todo: Fix on windows
 clean-logs:
 	@rm -r ./$(MLFLOW_LOG_DIR)/*
 	@rm -r ./$(SYS_LOG_DIR)/*
 
 save-env:
-	@conda env export > ./$(ENV_DIR)/$(ENV_FILENAME)
+	@conda env export > ./$(REQ_FILENAME)
 
 # Todo: doesn't work yet on windows
 update-env-file:
-	@conda env update  --file ./$(ENV_DIR)/$(ENV_FILENAME) --prune
+	@conda env update  --file ./$(REQ_FILENAME) --prune
 
 
 # Create the environment with necessary dependencies for the experiment
 install:
-	@conda create --name $(CONDA_ENV_NAME) --file ./$(ENV_DIR)/$(ENV_FILENAME)
+	@conda create --name $(CONDA_ENV_NAME) --file ./$(REQ_FILENAME)
+	# create juptyer kernel for the current environment
+	python -m ipykernel install --user --name ENVNAME --display-name "$(PYTHON_VERSION) ($(CONDA_ENV_NAME))"
 
+# TODO: fix on windows
 test:
-	run pytest
+	$(shell pytest)
+
