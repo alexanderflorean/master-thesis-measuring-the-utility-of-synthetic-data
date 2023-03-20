@@ -21,16 +21,16 @@ clean-logs:
 save-env:
 	@conda env export > ./$(REQ_FILENAME)
 
-# Todo: doesn't work yet on windows
+# Todo: Fix on windows
 update-env-file:
 	@conda env update  --file ./$(REQ_FILENAME) --prune
 
 
-# Create the environment with necessary dependencies for the experiment
 install:
+	# Create the environment with necessary dependencies for the experiment
 	@conda create --name $(CONDA_ENV_NAME) --file ./$(REQ_FILENAME)
 	# create juptyer kernel for the current environment
-	python -m ipykernel install --user --name ENVNAME --display-name "$(PYTHON_VERSION) ($(CONDA_ENV_NAME))"
+	python -m ipykernel install --user --name $(CONDA_ENV_NAME) --display-name "$(PYTHON_VERSION) ($(CONDA_ENV_NAME))"
 
 # TODO: fix on windows
 test:
