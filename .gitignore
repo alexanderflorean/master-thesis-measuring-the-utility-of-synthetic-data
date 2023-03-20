@@ -1,8 +1,8 @@
 #experiment specific
-real/*
-!real/.gitkeep
-synthetic/*
-!synthetic/.gitkeep
+data/real/*
+!data/real/.gitkeep
+data/synthetic/*
+!data/synthetic/.gitkeep
 logs/*
 !logs/.gitkeep
 mlruns/
