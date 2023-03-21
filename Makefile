@@ -31,5 +31,5 @@ install:
 	@python -m ipykernel install --user --name $(CONDA_ENV_NAME) --display-name "$(PYTHON_VERSION) ($(CONDA_ENV_NAME))"
 
 test:
-	pytest
+	@pytest
 

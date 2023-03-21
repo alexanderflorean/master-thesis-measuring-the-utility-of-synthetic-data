@@ -134,8 +134,6 @@ def s_pmse(original_data, synthetic_data, classifier=LogisticRegression()):
 
 
 ### Start - Cluster analysis
-import numpy as np
-
 def calculate_cluster_weight(cluster_id, 
                              target_cluster_data_count, 
                              cluster_data_count, 
@@ -215,14 +213,14 @@ def cluster_analysis_metric(original_data,
         # Contains only numerical cols, standardize the combined data
         scaled_combined_data = StandardScaler().fit_transform(combined_data)
         # Cluster the scaled data with sklearn.KMeans()
-        kmeans = KMeans(n_clusters=num_clusters, random_state=42).fit(scaled_combined_data)
+        kmeans = KMeans(n_clusters=num_clusters, random_state=random_state).fit(scaled_combined_data)
         cluster_labels = kmeans.labels_
 
     else:
         # Perform clustering on the combined data using KPrototypes, it already encodes categorical attributes
         # Standardize non categorical columns
         scaled_combined_data = standardize_select_columns(combined_data, indices_to_exclude=categorical_columns)
-        kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=42).fit(scaled_combined_data, categorical=categorical_columns)
+        kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=random_state).fit(scaled_combined_data, categorical=categorical_columns)
         cluster_labels = kproto.labels_
 
     
