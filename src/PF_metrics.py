@@ -134,15 +134,27 @@ def s_pmse(original_data, synthetic_data, classifier=LogisticRegression()):
 
 
 ### Start - Cluster analysis
+import numpy as np
+
 def calculate_cluster_weight(cluster_id, 
                              target_cluster_data_count, 
                              cluster_data_count, 
                              total_data_count):
+    """
+    Calculate the approximate standard error for the percentage of the 
+    target count in the provided cluster data.
 
-    """ Calculate the weight for a given cluster """
+    Args:
+        cluster_id: int or any unique identifier for the cluster
+        target_cluster_data_count: int, the number of target data points in the cluster
+        cluster_data_count: int, the total number of data points in the cluster
+        total_data_count: int, the total number of data points across all clusters
 
-    # computes the percentage of the target_data_count over the total cluster count
+    Returns:
+        float: The approximate standard error for the given cluster over all samples
+    """
     percentage = target_cluster_data_count / cluster_data_count
+
     return np.sqrt((percentage * (1 - percentage)) / total_data_count)
 
 
@@ -153,12 +165,11 @@ def standardize_select_columns(data, indices_to_exclude):
         Args:
             
             data: pandas.DataFrame
-
             indices_to_exclude: list[int]
                 List of indices of columns in the dataset to not standardize
 
         Returns:
-            Dataset with specified columns to standardize
+            pandas.DataFrame: data with specified columns to standardize
 
     """
     scaler = StandardScaler()
@@ -194,18 +205,6 @@ def cluster_analysis_metric(original_data,
         categorical_columns: list[int]
             List of indices of columns that contain categorical data
 
-        weights:    Union[str, List[float]]
-            The type of weights to use or a list of weights.
-
-                None: sets all cluster weights to 1.
-
-                "approx_std_err": computes the approximate standard error for the 
-                    percentage of the number of synthetic data samples in the 
-                    current cluster.
-
-                List[float]: the weights for each cluster, following must be true: 
-                    len(List[float]) == num_clusters
-        
     Returns:
         float: The cluster analysis metric.
     """
