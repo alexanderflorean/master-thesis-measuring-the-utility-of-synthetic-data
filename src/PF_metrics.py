@@ -6,119 +6,144 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.cluster import KMeans
 from kmodes.kprototypes import KPrototypes
+from sklearn.linear_model import LogisticRegression
 
 ### Start - pMSE & S_pMSE
-def compute_propensity(original_data, synthetic_data):
-    """     Uses the CART model from sklearn to compute the popensity 
-            of predicting the synthetic data, i.e. the pobability that 
-            the model predicts the synthetic data.
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
 
-                The method assumes the original and synthetic data has 
-                the same features.
 
-            In:
-                original_data:  pandas.DataFrame
-                synthetic_data: pandas.DataFrame
-            Out: 
-                List of probabilities for predicting the samples are synthetic data
+def compute_propensity(original_data, synthetic_data, classifier):
+    """
+    Uses Logistic Regression from sklearn to compute the propensity
+    of predicting the synthetic data, i.e. the probability that
+    the model predicts the synthetic data.
+
+    The method assumes the original and synthetic data has
+    the same features.
+
+    Args:
+        original_data: pandas.DataFrame
+        synthetic_data: pandas.DataFrame
+        classifier: scikit-learn classifier
+
+    Returns:
+        Dictionary with the following:
+            'score': List of probabilities for predicting the samples are synthetic data
+            'no': number of original data samples in the test data
+            'ns': number of synthetic data samples in the test data
     """
     # TODO: consider standardizing values and encoding the categorical predictors
-    
-    # Add target label 'S', i.e. if the sample is synthetic 
+
+    # Add target label 'S', i.e. if the sample is synthetic
     original_data['S'] = 0
     synthetic_data['S'] = 1
-    
+
     # Combine original_data and synthetic_data
     combined_data = pd.concat([original_data, synthetic_data], axis=0)
     Z = combined_data.drop(columns='S')   # remove target label
-    
+
     # train-test split
-    X_train, X_test, y_train, y_test = train_test_split(Z, 
-                                                        combined_data['S'], 
-                                                        test_size=0.3, 
+    X_train, X_test, y_train, y_test = train_test_split(Z,
+                                                        combined_data['S'],
+                                                        test_size=0.3,
                                                         random_state=42)
 
-    # fit CART model and compute propensity scores
-    clf = DecisionTreeClassifier()
-    ''' TODO: set default settings, however need to double check
-            test_size=0.25,     random_state=42,
-            criterion='gini',   splitter='best', 
-            max_depth=None,     min_samples_split=2,
-            min_samples_leaf=1, min_weight_fraction_leaf=0.0, 
-            max_features=None,  max_leaf_nodes=None, 
-            min_impurity_split=None, cp_alpha=0.0,
-            class_weight=None,   presort='deprecated', 
-            min_impurity_decrease=0.0 
-    '''
+    n_o_test = sum(y_test == 0)  # number of original samples in the test data
+    n_s_test = sum(y_test == 1)  # number of synthetic samples in the test data
 
+    # fit Logistic Regression model and compute propensity scores
+    clf = LogisticRegression()
     clf.fit(X_train, y_train)
 
     # Extract probabilities for class 1 (synthetic) on X_test datapoints
-    score = clf.predict_proba(X_test)[:, 1] 
-    
-    return score
+    score = clf.predict_proba(X_test)[:, 1]
+
+    return {'score': score, 'no': n_o_test, 'ns': n_s_test}
 
 
-def pMSE(original_data, synthetic_data):
-    ''' 
-    Calculate the propensity mean-squared error
-        Algorithm implemented as described in DOI: 10.1111/rssa.12358
-    '''
-    
-    n_o = original_data.shape[0]   # number of samples in original data
-    n_s = synthetic_data.shape[0]  # number of samples in synthetic data
+def pmse(original_data, synthetic_data, classifier=LogisticRegression()):
+    """
+    Calculate the propensity mean-squared error.
+    Algorithm implemented as described in DOI: 10.1111/rssa.12358
+
+    Args:
+        original_data: pandas.DataFrame
+        synthetic_data: pandas.DataFrame
+        classifier: (optional) scikit-learn classifier, 
+                    default=LogisticRegression 
+
+    Returns:
+        float: pMSE score
+    """
+    # TODO: neeed to double check implementation
+
+    prop_dict = compute_propensity(original_data.copy(), synthetic_data.copy(), classifier)
+
+    propensity = prop_dict['score']
+
+    n_o = prop_dict['no']  # number of samples from original data
+    n_s = prop_dict['ns']  # number of samples from synthetic data
     N = n_o + n_s
-    c = n_s / N
-    
-    propensity = compute_propensity(original_data.copy(), synthetic_data.copy())
-    
-    pMSE_score = sum((propensity - c) ** 2 ) / N
-    
-    return pMSE_score
+    c = n_s / N             # proportion of # synthetic samples in the test data
+
+    pmse_score = sum((propensity - c) ** 2) / N
+
+    return pmse_score
 
 
-def S_pMSE(original_data, synthetic_data):
-    ''' 
+def s_pmse(original_data, synthetic_data, classifier=LogisticRegression()):
+    """
     Calculate the standardized propensity mean-squared error
         Algorithm implemented as described in DOI: 10.1111/rssa.12358
-    '''
+    Args:
+        original_data: pandas.DataFrame
+        synthetic_data: pandas.DataFrame
+        classifier: (optional) scikit-learn classifier, 
+                    default=LogisticRegression 
+
+    Returns:
+        float: standardized pMSE score
+    """
+    # TODO: neeed to double check implementation
     
     # Get variables
     k = original_data.shape[1]  # number of predictors of the combined dataset (i.e. target 'S')
-    n_o = original_data.shape[0]     # number of samples in original data
-    n_s = synthetic_data.shape[0]    # number of samples in synthetic data
+
+    prop_dict = compute_propensity(original_data.copy(), synthetic_data.copy(), classifier)
+
+    propensity = prop_dict['score']
+
+    n_o = prop_dict['no']  # number of samples from original data
+    n_s = prop_dict['ns']  # number of samples from synthetic data
     N = n_o + n_s
-    c = n_s / N
+    c = n_s / N             # proportion of # synthetic samples in the test data
+
+    pmse_score = sum((propensity - c) ** 2) / N
     
-    pMSE_score = pMSE(original_data, synthetic_data)
     
     # simulated results for the expected and standard deviation  pMSE value
-    sim_pMSE = (k-1) * (1 - c) ** 2 * c / N
-    std_pMSE = sqrt(2 * (k-1)) * (1 - c) ** 2 * c / N
+    sim_pmse = (k-1) * (1 - c) ** 2 * c / N
+    std_pmse = sqrt(2 * (k-1)) * (1 - c) ** 2 * c / N
     
-    S_pMSE_score = (pMSE_score - sim_pMSE) / std_pMSE
+    s_pmse_score = (pmse_score - sim_pmse) / std_pmse
     
-    return S_pMSE_score
+    return s_pmse_score
 ### End - pMSE & S_pMSE
 
 
 ### Start - Cluster analysis
-def calculate_cluster_weight(weights, 
-                             cluster_id, 
+def calculate_cluster_weight(cluster_id, 
                              target_cluster_data_count, 
                              cluster_data_count, 
                              total_data_count):
 
     """ Calculate the weight for a given cluster """
 
-    if weights is None:
-        return 1
-    elif weights == "approx_std_err":
-        # computes the percentage of the target_data_count over the total cluster count
-        percentage = target_cluster_data_count / cluster_data_count
-        return np.sqrt((percentage * (1 - percentage)) / total_data_count)
-    else:
-        return weights[cluster_id]
+    # computes the percentage of the target_data_count over the total cluster count
+    percentage = target_cluster_data_count / cluster_data_count
+    return np.sqrt((percentage * (1 - percentage)) / total_data_count)
 
 
 def standardize_select_columns(data, indices_to_exclude):
@@ -150,7 +175,6 @@ def cluster_analysis_metric(original_data,
                             synthetic_data, 
                             num_clusters, 
                             categorical_columns=None,
-                            weights="approx_std_err",
                             random_state=42):
     """
     Calculate the cluster analysis metric for the given original and synthetic datasets.
@@ -213,17 +237,19 @@ def cluster_analysis_metric(original_data,
 
     for cluster_id in range(num_clusters):
 
+        # TODO: add column, and identify dataset sample from the cluster
         original_cluster_data_count = np.sum(cluster_labels[:original_data_count] == cluster_id)
         synthetic_cluster_data_count = np.sum(cluster_labels[original_data_count:] == cluster_id)
 
         total_cluster_data_count = original_cluster_data_count + synthetic_cluster_data_count
 
         # TODO: question, should I use the target_count for synthetic or original data count here?
-        weight = calculate_cluster_weight(weights=weights, 
+        weight = calculate_cluster_weight(
                                   cluster_id=cluster_id, 
                                   target_cluster_data_count=original_cluster_data_count, 
                                   cluster_data_count=total_cluster_data_count, 
-                                  total_data_count=total_data_count)
+                                  total_data_count=total_data_count
+                                  )
 
         Uc += weight * ((original_cluster_data_count / total_cluster_data_count) - constant_c)** 2
 
