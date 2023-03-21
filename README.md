@@ -9,7 +9,7 @@ master-thesis-vt23/
 |- pickles/		   # data-objects such as models and instances of classes  
 |- src/			   # source code  
 |- tests/		   # test files (should mirror the src folder)  
-|- Makefile		   # automization of tasks   
+|- Makefile		   # automization of tasks, is buggy on windows   
 |- requirements.txt	   # project dependencies  
 |- config_experiment.yaml  # global settings for the experiment  
 
@@ -17,18 +17,13 @@ master-thesis-vt23/
 ## Pre-requesites
 - Anaconda3/miniconda3
 
-- For windows users, to use makefile:
-  - make: a command linue utility that executes makefile (standard program in linux OS'es).
-    - Tip, use "Chocolatey": package manager, can be used to install make 
-      (![install instructions](https://chocolatey.org/install)) 
-      Then run ´choco install make´ 
-
 ## Install
-
-### Set-up jupyter kernel environment right
-Run the following in the wanted environment:  
-`pip install ipykernel`  
-`python -m ipykernel install --user --name ENVNAME --display-name "Python (whatever you want to call it)"`  
+Run following commands  
+```
+conda env create --name master --file requirements.yaml
+conda activate master
+python -m ipykernel install --user --name master --display-name "Python 3.9.16 (master)"
+```
 
 
 ### Experiment settings
