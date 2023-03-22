@@ -18,50 +18,54 @@ synthetic_df = pd.DataFrame(synthetic_data, columns=['A', 'B', 'C'])
 
 def test_compute_propensities():
     propensities = compute_propensity(original_df.copy(), synthetic_df.copy())
-    #assert len(propensities) == 200, "Incorrect length of propensities array"
-    assert 0 <= propensities.min() <= 1, "Propensity scores out of range (0 to 1)"
-    assert 0 <= propensities.max() <= 1, "Propensity scores out of range (0 to 1)"
+    assert 0 <= propensities['score'].min() <= 1, "Propensity scores out of range (0 to 1)"
+    assert 0 <= propensities['score'].max() <= 1, "Propensity scores out of range (0 to 1)"
 
 
-def test_pMSE():
-    pMSE_score = pMSE(original_df.copy(), synthetic_df.copy())
-    assert 0 <= pMSE_score , "Negative pMSE value"
+def test_pmse():
+    pmse_score = pmse(original_df.copy(), synthetic_df.copy())
+    assert 0 <= pmse_score , "Negative pMSE value"
     if (len(original_df) == len(synthetic_df)): 
-        assert pMSE_score <= 0.5, "pMSE value larger than 0.5, when original and synthetic datasets are of the same size."
+        assert pmse_score <= 0.5, "pMSE value larger than 0.5, when original and synthetic datasets are of the same size."
 
 
-def test_S_pMSE():
-    S_pMSE_score = S_pMSE(original_df.copy(), synthetic_df.copy())
-    assert isinstance(S_pMSE_score, float), "S_pMSE result is not a float"
+def test_s_pmse():
+    s_pmse_score = s_pmse(original_df.copy(), synthetic_df.copy())
+    assert isinstance(s_pmse_score, float), "S_pMSE result is not a float"
 
 
 def test_standardize_select_columns():
-    # Example usage:
-    test_input = pd.DataFrame({
-        'A': [1, 2, 3, 4],
-        'B': [10, 20, 30, 40],
-        'C': [100, 200, 300, 400]
-    })
-    expected = pd.DataFrame({
-    'A': [-1.341641, -0.447214, 0.447214, 1.341641],
-    'B': [10, 20, 30, 40],
-    'C': [100, 200, 300, 400]
+    # Prepare sample data
+    data = pd.DataFrame({
+        'A': [1, 2, 3, 4, 5],
+        'B': [12, 24, 36, 48, 60],
+        'C': [100, 200, 300, 400, 500]
     })
 
+    # Test standardizing all columns
+    standardized_data = standardize_select_data(data, [])
+    print(standardized_data)
+    assert np.isclose(standardized_data.mean(), 0).all()
+    assert np.isclose(standardized_data.std(), 1).all()
 
-    exclude_indices = [1, 2]  # Do not standardize column B and C
-    output_df = standardize_select_columns(test_input, exclude_indices)
+    # Test standardizing specific columns and excluding one
+    standardized_data = standardize_select_data(data, [1])
+    assert np.isclose(standardized_data['A'].mean(), 0)
+    assert np.isclose(standardized_data['A'].std(), 1)
+    assert np.isclose(standardized_data['C'].mean(), 0)
+    assert np.isclose(standardized_data['C'].std(), 1)
+    assert not np.isclose(standardized_data['B'].mean(), 0)
+    assert not np.isclose(standardized_data['B'].std(), 1)
 
-    assert output_df.shape == expected.shape, f"The function returned wrong shape, \nexpected: {expected.shape}, \nouput: {output_df.shape}"
+    # Test standardizing with an invalid index
+    try:
+        standardized_data = standardize_select_data(data, [3])
+    except IndexError:
+        assert True
+    else:
+        assert False
 
-    assert expected.columns.equals(output_df.columns), f"The function returned wrong columns, \nexpected: {expected.columns}, \noutput: {output_df.columns}"
-
-    float_columns = output_df.select_dtypes(include=[np.float64, np.float32]).columns
-    non_float_columns = output_df.columns.difference(float_columns)
-
-    float_close = np.isclose(output_df[float_columns], expected[float_columns]).all().all()
-
-    assert float_close, "Output from function generated wrong float values"
-
-    non_float_equal = output_df[non_float_columns].equals(expected[non_float_columns])
-    assert non_float_equal, "Ouput from the function changed non float columns"
+    # Test with an empty DataFrame
+    empty_data = pd.DataFrame()
+    standardized_empty_data = standardize_select_data(empty_data, [])
+    assert standardized_empty_data.empty

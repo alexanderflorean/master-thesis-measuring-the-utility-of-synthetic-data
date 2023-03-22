@@ -8,13 +8,10 @@ from sklearn.cluster import KMeans
 from kmodes.kprototypes import KPrototypes
 from sklearn.linear_model import LogisticRegression
 
+from sdmetrics.single_table import BNLikelihood, BNLogLikelihood, GMLogLikelihood
+
 ### Start - pMSE & S_pMSE
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-
-
-def compute_propensity(original_data, synthetic_data, classifier):
+def compute_propensity(original_data, synthetic_data, classifier=LogisticRegression()):
     """
     Uses Logistic Regression from sklearn to compute the propensity
     of predicting the synthetic data, i.e. the probability that
@@ -54,11 +51,10 @@ def compute_propensity(original_data, synthetic_data, classifier):
     n_s_test = sum(y_test == 1)  # number of synthetic samples in the test data
 
     # fit Logistic Regression model and compute propensity scores
-    clf = LogisticRegression()
-    clf.fit(X_train, y_train)
+    classifier.fit(X_train, y_train)
 
     # Extract probabilities for class 1 (synthetic) on X_test datapoints
-    score = clf.predict_proba(X_test)[:, 1]
+    score = classifier.predict_proba(X_test)[:, 1]
 
     return {'score': score, 'no': n_o_test, 'ns': n_s_test}
 
@@ -134,8 +130,7 @@ def s_pmse(original_data, synthetic_data, classifier=LogisticRegression()):
 
 
 ### Start - Cluster analysis
-def calculate_cluster_weight(cluster_id, 
-                             target_cluster_data_count, 
+def calculate_cluster_weight(target_cluster_data_count, 
                              cluster_data_count, 
                              total_data_count):
     """
@@ -143,10 +138,9 @@ def calculate_cluster_weight(cluster_id,
     target count in the provided cluster data.
 
     Args:
-        cluster_id: int or any unique identifier for the cluster
-        target_cluster_data_count: int, the number of target data points in the cluster
-        cluster_data_count: int, the total number of data points in the cluster
-        total_data_count: int, the total number of data points across all clusters
+        target_cluster_data_count (int): the number of target data points in the cluster
+        cluster_data_count (int): the total number of data points in the cluster
+        total_data_count (int): the total number of data points across all clusters
 
     Returns:
         float: The approximate standard error for the given cluster over all samples
@@ -156,28 +150,50 @@ def calculate_cluster_weight(cluster_id,
     return np.sqrt((percentage * (1 - percentage)) / total_data_count)
 
 
-def standardize_select_columns(data, indices_to_exclude):
+def standardize_select_data(data: pd.DataFrame, indices_to_exclude: list) -> pd.DataFrame:
     """
-    Standardize a selection of columns in a dataset
-        
-        Args:
-            
-            data: pandas.DataFrame
-            indices_to_exclude: list[int]
-                List of indices of columns in the dataset to not standardize
+    Standardizes a pandas DataFrame with the exception of specified columns.
 
-        Returns:
-            pandas.DataFrame: data with specified columns to standardize
+    Args:
+        data (pd.DataFrame): The input DataFrame to standardize.
+        indices_to_exclude (list): A list of column indices to exclude from standardization.
 
-    """
+    Returns:
+        pd.DataFrame: The standardized DataFrame except for specified columns.
+
+    # Create a copy of the original DataFrame to avoid modifying it directly
+    st_data = data.copy()
+    cols_to_drop = []
+    for index, col in enumerate(indices_to_exclude):
+        # drop columns
+        if col in st_data.columns:
+            cols_to_drop.append(st_data[col])
+            st_data.drop(columns=cols_to_drop[-1].name, inplace=True, axis=0)
+
+    # scale the data
     scaler = StandardScaler()
-    column_indices = np.arange(data.shape[1])
+    st_data = scaler.fit_transform(st_data)
 
-    columns_to_standardize = np.setdiff1d(column_indices, indices_to_exclude)
-    
-    data.iloc[:, columns_to_standardize] = scaler.fit_transform(data.iloc[:, columns_to_standardize])
-    
-    return data
+    for c_col in cols_to_drop:
+        st_data[c_col.name] = c_col
+
+    return st_data
+
+    """
+    # Create a copy of the original DataFrame to avoid modifying it directly
+    st_data = data.copy()
+
+    # drop columns
+    st_data.drop(columns=indices_to_exclude, inplace=True, axis=0)
+    scaler = StandardScaler()
+    st_data = scaler.fit_transform(st_data)
+    data.
+
+    #return the cols
+    for col in cols_to_drop:
+        st_data[col] = data[col]
+
+    return st_data
 
 
 def cluster_analysis_metric(original_data, 
@@ -219,8 +235,8 @@ def cluster_analysis_metric(original_data,
     else:
         # Perform clustering on the combined data using KPrototypes, it already encodes categorical attributes
         # Standardize non categorical columns
-        scaled_combined_data = standardize_select_columns(combined_data, indices_to_exclude=categorical_columns)
-        kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=random_state).fit(scaled_combined_data, categorical=categorical_columns)
+        # TODO: scaled_combined_data = standardize_select_columns(combined_data, indices_to_exclude=categorical_columns)
+        kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=random_state).fit(combined_data, categorical=categorical_columns)
         cluster_labels = kproto.labels_
 
     
@@ -242,7 +258,6 @@ def cluster_analysis_metric(original_data,
 
         # TODO: question, should I use the target_count for synthetic or original data count here?
         weight = calculate_cluster_weight(
-                                  cluster_id=cluster_id, 
                                   target_cluster_data_count=original_cluster_data_count, 
                                   cluster_data_count=total_cluster_data_count, 
                                   total_data_count=total_data_count
@@ -253,3 +268,21 @@ def cluster_analysis_metric(original_data,
     Uc /= num_clusters
     return Uc
 ### End - Cluster analysis
+
+### Start - Likehood measures
+def GMLogLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
+    return GMLogLikelihood.compute(real_data=original_data, 
+                                   synthetic_data=synthetic_data, 
+                                   metadata=metadata, **kwargs)
+
+def BNLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
+    return BNLikelihood.compute(real_data=original_data, 
+                                   synthetic_data=synthetic_data, 
+                                   metadata=metadata, **kwargs)
+
+def BNLogLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
+    return BNLogLikelihood.compute(real_data=original_data, 
+                                   synthetic_data=synthetic_data, 
+                                   metadata=metadata, **kwargs)
+### End - Likehood measures
+
