@@ -161,39 +161,18 @@ def standardize_select_data(data: pd.DataFrame, indices_to_exclude: list) -> pd.
     Returns:
         pd.DataFrame: The standardized DataFrame except for specified columns.
 
-    # Create a copy of the original DataFrame to avoid modifying it directly
-    st_data = data.copy()
-    cols_to_drop = []
-    for index, col in enumerate(indices_to_exclude):
-        # drop columns
-        if col in st_data.columns:
-            cols_to_drop.append(st_data[col])
-            st_data.drop(columns=cols_to_drop[-1].name, inplace=True, axis=0)
-
-    # scale the data
-    scaler = StandardScaler()
-    st_data = scaler.fit_transform(st_data)
-
-    for c_col in cols_to_drop:
-        st_data[c_col.name] = c_col
-
-    return st_data
-
     """
-    # Create a copy of the original DataFrame to avoid modifying it directly
+    # TODO: check if correct implementation
     st_data = data.copy()
-
-    # drop columns
-    st_data.drop(columns=indices_to_exclude, inplace=True, axis=0)
     scaler = StandardScaler()
-    st_data = scaler.fit_transform(st_data)
-    data.
+    column_indices = np.arange(data.shape[1])
 
-    #return the cols
-    for col in cols_to_drop:
-        st_data[col] = data[col]
+    columns_to_standardize = np.setdiff1d(column_indices, indices_to_exclude)
+
+    st_data.iloc[:, columns_to_standardize] = scaler.fit_transform(st_data.iloc[:, columns_to_standardize])
 
     return st_data
+
 
 
 def cluster_analysis_metric(original_data, 
@@ -235,7 +214,7 @@ def cluster_analysis_metric(original_data,
     else:
         # Perform clustering on the combined data using KPrototypes, it already encodes categorical attributes
         # Standardize non categorical columns
-        # TODO: scaled_combined_data = standardize_select_columns(combined_data, indices_to_exclude=categorical_columns)
+        scaled_combined_data = standardize_select_columns(combined_data, indices_to_exclude=categorical_columns)
         kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=random_state).fit(combined_data, categorical=categorical_columns)
         cluster_labels = kproto.labels_
 
