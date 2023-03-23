@@ -146,7 +146,7 @@ def calculate_cluster_weight(target_cluster_data_count:int, cluster_data_count:i
     return np.sqrt((percentage * (1 - percentage)) / total_data_count)
 
 
-def standardize_select_data(data: pd.DataFrame, indices_to_exclude: list) -> pd.DataFrame:
+def standardize_select_columns(data: pd.DataFrame, indices_to_exclude: list) -> pd.DataFrame:
     """
     Standardizes a pandas DataFrame with the exception of specified columns.
 
