@@ -36,3 +36,5 @@ python -m ipykernel install --user --name master --display-name "Python 3.9.16 (
 The file `./config/experiment_settings.yml` contains all the global settings for all runs of the experiment,
 such as the folders for each files, or for choosing how many synthetic datasets to generat, or how large each of 
 them should be.
+
+### TODO: Access logs
