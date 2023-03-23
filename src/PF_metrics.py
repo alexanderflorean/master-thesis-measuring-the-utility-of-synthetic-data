@@ -248,20 +248,61 @@ def cluster_analysis_metric(original_data,
     return Uc
 ### End - Cluster analysis
 
-### Start - Likehood measures
-def GMLogLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
-    return GMLogLikelihood.compute(real_data=original_data, 
-                                   synthetic_data=synthetic_data, 
-                                   metadata=metadata, **kwargs)
-
+### Start - Likehood measures:  Looks at the likelihood of the synthetic data belonging to the real data. 
 def BNLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
+    """ Uses Bayesian Network to learn the distribution of the real data to then average 
+    likelihood for all samples on wether they belong to the real data, range[0,1], where 0 means it doesn't
+    belong to the real data and 1 that it does.
+
+    Meant for boolean, categorical data and ignores the other incompatible column types,
+    NOTE: this metric does not accept missing values.
+    For more details see: 
+        https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/data-likelihood/bnlikelihood
+    
+    """
     return BNLikelihood.compute(real_data=original_data, 
                                    synthetic_data=synthetic_data, 
                                    metadata=metadata, **kwargs)
 
 def BNLogLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
+    """ Returns the log of BNLikelihood
+    Range[-inf, 1]
+    Meant for boolean, categorical data and ignores the other incompatible column types,
+    NOTE: this metric does not accept missing values.
+    For more details see: 
+        https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/data-likelihood/bnloglikelihood
+    """
     return BNLogLikelihood.compute(real_data=original_data, 
+                                   synthetic_data=synthetic_data, 
+                                   metadata=metadata, **kwargs)
+
+def GMLogLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
+    """ Uses multiple Gaussian mixtures models to learn the distribution of the real data to then returns 
+    the average likelihood for all samples on wether they belongs to the real data or not.
+    Range[-inf,+inf], where -inf means it doesn't belong to the real data and +inf that it does. 
+    Meaning, the larger the value the more likely the sample/s belong to the real data and 
+    the smaller means the opposite.
+    
+    Meant for continous, numerical data and ignores the other incompatible column types,
+    NOTE: this metric does not accept missing values.
+    For more details see: 
+        https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/data-likelihood/gmlikelihood
+    
+    """
+    return GMLogLikelihood.compute(real_data=original_data, 
                                    synthetic_data=synthetic_data, 
                                    metadata=metadata, **kwargs)
 ### End - Likehood measures
 
+### Start - Divergance measures:
+def ContinousKLDivergence_metric():
+    pass
+
+def DiscreteKLDivergence_metric():
+    pass
+### End - Divergance measures
+
+### Start - ML Efficacy: Binary classification
+### End - ML Efficacy: Binary classification
+### Start - ML Efficacy: Multiclass classification
+### End - ML Efficacy: Multiclass classification
