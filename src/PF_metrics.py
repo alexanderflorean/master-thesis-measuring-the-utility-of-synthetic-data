@@ -284,17 +284,20 @@ def GMLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFra
     return GMLogLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
 ### End - Likehood measures
 
-### Start - Divergance measures:
+### Start - KL-Divergance measures:
 def ContinousKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
+    # TODO: Document
     return ContinuousKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
 
 def DiscreteKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
+    # TODO: Document
     return DiscreteKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
-
 ### End - Divergance measures
 
+### Start 
+
 ### Start - ML Efficacy: Binary classification
-    # TODO
+    # TODO: Worth looking at?
 ### End - ML Efficacy: Binary classification
 ### Start - ML Efficacy: Multiclass classification
     # TODO
