@@ -3,7 +3,6 @@ from math import sqrt
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.cluster import KMeans
 from kmodes.kprototypes import KPrototypes
 from sklearn.linear_model import LogisticRegression
@@ -209,11 +208,11 @@ def cluster_analysis_metric(original_data,
         scaled_combined_data = StandardScaler().fit_transform(combined_data)
         # Cluster the scaled data with sklearn.KMeans()
         kmeans = KMeans(n_clusters=num_clusters, random_state=random_state).fit(scaled_combined_data)
-        cluster_labels = kmeans.labels_
+        cluster_labels = kmeans.labels_  # returns the 
 
     else:
         # Perform clustering on the combined data using KPrototypes, it already encodes categorical attributes
-        # Standardize non categorical columns
+        # Standardize non-categorical columns
         scaled_combined_data = standardize_select_columns(combined_data, indices_to_exclude=categorical_columns)
         kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=random_state).fit(combined_data, categorical=categorical_columns)
         cluster_labels = kproto.labels_
