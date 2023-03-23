@@ -37,4 +37,18 @@ The file `./config/experiment_settings.yml` contains all the global settings for
 such as the folders for each files, or for choosing how many synthetic datasets to generat, or how large each of 
 them should be.
 
-### TODO: Access logs
+### Logs
+
+The system uses the mlflow library to manage all the data, it is then possible to view them through an html portal, to do this
+run the following comand in the shell:  
+
+change directory to ./notebooks/  
+`cd ./notebooks/`
+
+activate the conda environmnent   
+` conda activate master`
+
+run the command to start the frontend-log server,  
+`mlflow ui`
+
+then open web-browser en use the link provided by mlflow.

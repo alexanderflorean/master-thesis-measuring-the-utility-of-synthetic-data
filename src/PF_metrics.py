@@ -8,6 +8,8 @@ from kmodes.kprototypes import KPrototypes
 from sklearn.linear_model import LogisticRegression
 
 from sdmetrics.single_table import BNLikelihood, BNLogLikelihood, GMLogLikelihood
+from sdmetrics.single_table.multi_column_pairs import ContinuousKLDivergence, DiscreteKLDivergence
+from sdmetrics.single_table.multi_single_column import KSComplement, CSTest
 
 ### Start - pMSE & S_pMSE
 def compute_propensity(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=LogisticRegression()) -> dict:
@@ -41,10 +43,7 @@ def compute_propensity(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, 
     Z = combined_data.drop(columns='S')   # remove target label
 
     # train-test split
-    X_train, X_test, y_train, y_test = train_test_split(Z,
-                                                        combined_data['S'],
-                                                        test_size=0.3,
-                                                        random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(Z, combined_data['S'], test_size=0.3, random_state=42)
 
     n_o_test = sum(y_test == 0)  # number of original samples in the test data
     n_s_test = sum(y_test == 1)  # number of synthetic samples in the test data
@@ -129,9 +128,7 @@ def s_pmse(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=L
 
 
 ### Start - Cluster analysis
-def calculate_cluster_weight(target_cluster_data_count:int, 
-                             cluster_data_count:int, 
-                             total_data_count:int) -> float:
+def calculate_cluster_weight(target_cluster_data_count:int, cluster_data_count:int, total_data_count:int) -> float:
     """
     Calculate the approximate standard error for the percentage of the 
     target count in the provided cluster data.
@@ -259,9 +256,7 @@ def BNLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame,
         https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/data-likelihood/bnlikelihood
     
     """
-    return BNLikelihood.compute(real_data=original_data, 
-                                   synthetic_data=synthetic_data, 
-                                   metadata=metadata, **kwargs)
+    return BNLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
 
 def BNLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
     """ Returns the log of BNLikelihood
@@ -271,9 +266,7 @@ def BNLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFra
     For more details see: 
         https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/data-likelihood/bnloglikelihood
     """
-    return BNLogLikelihood.compute(real_data=original_data, 
-                                   synthetic_data=synthetic_data, 
-                                   metadata=metadata, **kwargs)
+    return BNLogLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
 
 def GMLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
     """ Uses multiple Gaussian mixtures models to learn the distribution of the real data to then returns 
@@ -288,20 +281,21 @@ def GMLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFra
         https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/data-likelihood/gmlikelihood
     
     """
-    return GMLogLikelihood.compute(real_data=original_data, 
-                                   synthetic_data=synthetic_data, 
-                                   metadata=metadata, **kwargs)
+    return GMLogLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
 ### End - Likehood measures
 
 ### Start - Divergance measures:
-def ContinousKLDivergence_metric():
-    pass
+def ContinousKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
+    return ContinuousKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
 
-def DiscreteKLDivergence_metric():
-    pass
+def DiscreteKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
+    return DiscreteKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
+
 ### End - Divergance measures
 
 ### Start - ML Efficacy: Binary classification
+    # TODO
 ### End - ML Efficacy: Binary classification
 ### Start - ML Efficacy: Multiclass classification
+    # TODO
 ### End - ML Efficacy: Multiclass classification
