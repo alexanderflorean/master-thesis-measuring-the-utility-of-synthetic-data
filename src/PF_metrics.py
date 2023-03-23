@@ -10,7 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sdmetrics.single_table import BNLikelihood, BNLogLikelihood, GMLogLikelihood
 
 ### Start - pMSE & S_pMSE
-def compute_propensity(original_data, synthetic_data, classifier=LogisticRegression()):
+def compute_propensity(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=LogisticRegression()) -> dict:
     """
     Uses Logistic Regression from sklearn to compute the propensity
     of predicting the synthetic data, i.e. the probability that
@@ -58,7 +58,7 @@ def compute_propensity(original_data, synthetic_data, classifier=LogisticRegress
     return {'score': score, 'no': n_o_test, 'ns': n_s_test}
 
 
-def pmse(original_data, synthetic_data, classifier=LogisticRegression()):
+def pmse(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=LogisticRegression()) -> float:
     """
     Calculate the propensity mean-squared error.
     Algorithm implemented as described in DOI: 10.1111/rssa.12358
@@ -88,7 +88,7 @@ def pmse(original_data, synthetic_data, classifier=LogisticRegression()):
     return pmse_score
 
 
-def s_pmse(original_data, synthetic_data, classifier=LogisticRegression()):
+def s_pmse(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=LogisticRegression()) -> float:
     """
     Calculate the standardized propensity mean-squared error
         Algorithm implemented as described in DOI: 10.1111/rssa.12358
@@ -129,9 +129,9 @@ def s_pmse(original_data, synthetic_data, classifier=LogisticRegression()):
 
 
 ### Start - Cluster analysis
-def calculate_cluster_weight(target_cluster_data_count, 
-                             cluster_data_count, 
-                             total_data_count):
+def calculate_cluster_weight(target_cluster_data_count:int, 
+                             cluster_data_count:int, 
+                             total_data_count:int) -> float:
     """
     Calculate the approximate standard error for the percentage of the 
     target count in the provided cluster data.
@@ -174,11 +174,11 @@ def standardize_select_data(data: pd.DataFrame, indices_to_exclude: list) -> pd.
 
 
 
-def cluster_analysis_metric(original_data, 
-                            synthetic_data, 
-                            num_clusters, 
-                            categorical_columns=None,
-                            random_state=42):
+def cluster_analysis_metric(original_data:pd.DataFrame, 
+                            synthetic_data:pd.DataFrame, 
+                            num_clusters:int, 
+                            categorical_columns:list[int]=None,
+                            random_state:int=42) -> float:
     """
     Calculate the cluster analysis metric for the given original and synthetic datasets.
 
@@ -248,7 +248,7 @@ def cluster_analysis_metric(original_data,
 ### End - Cluster analysis
 
 ### Start - Likehood measures:  Looks at the likelihood of the synthetic data belonging to the real data. 
-def BNLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
+def BNLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
     """ Uses Bayesian Network to learn the distribution of the real data to then average 
     likelihood for all samples on wether they belong to the real data, range[0,1], where 0 means it doesn't
     belong to the real data and 1 that it does.
@@ -263,7 +263,7 @@ def BNLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
                                    synthetic_data=synthetic_data, 
                                    metadata=metadata, **kwargs)
 
-def BNLogLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
+def BNLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
     """ Returns the log of BNLikelihood
     Range[-inf, 1]
     Meant for boolean, categorical data and ignores the other incompatible column types,
@@ -275,7 +275,7 @@ def BNLogLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict)
                                    synthetic_data=synthetic_data, 
                                    metadata=metadata, **kwargs)
 
-def GMLogLikelihood_metric(original_data, synthetic_data, metadata, kwargs:dict):
+def GMLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
     """ Uses multiple Gaussian mixtures models to learn the distribution of the real data to then returns 
     the average likelihood for all samples on wether they belongs to the real data or not.
     Range[-inf,+inf], where -inf means it doesn't belong to the real data and +inf that it does. 
