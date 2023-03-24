@@ -10,6 +10,8 @@ from sklearn.linear_model import LogisticRegression
 from sdmetrics.single_table import BNLikelihood, BNLogLikelihood, GMLogLikelihood
 from sdmetrics.single_table.multi_column_pairs import ContinuousKLDivergence, DiscreteKLDivergence
 from sdmetrics.single_table.multi_single_column import KSComplement, CSTest
+from sdmetrics.single_table.efficacy import MulticlassMLPClassifier, BinaryMLPClassifier
+from sdmetrics.utils import get_columns_from_metadata, get_type_from_column_meta
 
 ### Start - pMSE & S_pMSE
 def compute_propensity(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=LogisticRegression()) -> dict:
@@ -245,7 +247,7 @@ def cluster_analysis_metric(original_data:pd.DataFrame,
 ### End - Cluster analysis
 
 ### Start - Likehood measures:  Looks at the likelihood of the synthetic data belonging to the real data. 
-def BNLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
+def BNLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     """ Uses Bayesian Network to learn the distribution of the real data to then average 
     likelihood for all samples on wether they belong to the real data, range[0,1], where 0 means it doesn't
     belong to the real data and 1 that it does.
@@ -256,9 +258,9 @@ def BNLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame,
         https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/data-likelihood/bnlikelihood
     
     """
-    return BNLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
+    return BNLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
-def BNLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
+def BNLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     """ Returns the log of BNLikelihood
     Range[-inf, 1]
     Meant for boolean, categorical data and ignores the other incompatible column types,
@@ -266,9 +268,9 @@ def BNLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFra
     For more details see: 
         https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/data-likelihood/bnloglikelihood
     """
-    return BNLogLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
+    return BNLogLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
-def GMLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
+def GMLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     """ Uses multiple Gaussian mixtures models to learn the distribution of the real data to then returns 
     the average likelihood for all samples on wether they belongs to the real data or not.
     Range[-inf,+inf], where -inf means it doesn't belong to the real data and +inf that it does. 
@@ -281,24 +283,68 @@ def GMLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFra
         https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/data-likelihood/gmlikelihood
     
     """
-    return GMLogLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
+    return GMLogLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 ### End - Likehood measures
 
-### Start - KL-Divergance measures:
-def ContinousKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
+### Start - Difference in Empirical distributions type measures
+def KLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     # TODO: Document
-    return ContinuousKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
+    # Computes the KLDivergence for both categorical and numeric columns and returns the mean of the values
+    continousKLDivergence = ContinousKLDivergence_metric(original_data, synthetic_data, metadata)
+    discreteKLDivergence = DiscreteKLDivergence_metric(original_data, synthetic_data, metadata)
 
-def DiscreteKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, kwargs:dict) -> float:
+    return (continousKLDivergence + discreteKLDivergence) / 2
+
+def ContinousKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     # TODO: Document
-    return DiscreteKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata, **kwargs)
-### End - Divergance measures
+    return ContinuousKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
-### Start 
+def DiscreteKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
+    # TODO: Document
+    return DiscreteKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
-### Start - ML Efficacy: Binary classification
-    # TODO: Worth looking at?
-### End - ML Efficacy: Binary classification
-### Start - ML Efficacy: Multiclass classification
-    # TODO
-### End - ML Efficacy: Multiclass classification
+
+def KSComplement_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
+    # TODO: Document
+    return KSComplement.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
+
+def CSTest_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
+    # TODO: Document
+    return CSTest.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
+
+### End - Difference in Empirical distributions type measures
+
+### Start - Cross-Classification measure
+def CrossClassification_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
+    # get categorical columns, 
+    # identify if they are binary or multiclass, 
+    # run respective MLEfficacy algorithm
+    # TODO: Document
+    # TODO: consideration, the measure produces different results everytime it is run, should it therefore 
+    # multiple times then calculate the average?
+
+    results = []
+    columns = get_columns_from_metadata(metadata)
+
+    for col in columns:
+        col_type = get_type_from_column_meta(columns[col])
+        if col_type == 'categorical':
+            target_data = original_data[col]
+            uniques = target_data.nunique()
+            if uniques == 2:
+                
+                efficacy = BinaryMLPClassifier.compute(test_data=original_data, 
+                                                       train_data=synthetic_data, 
+                                                       metadata=metadata, 
+                                                       target=col)
+            else:
+                efficacy = MulticlassMLPClassifier.compute(test_data=original_data,
+                                                           train_data=synthetic_data, 
+                                                           metadata=metadata, 
+                                                           target=col)
+                
+            results.append(efficacy)
+
+    return np.mean(results)
+
+### End - Cross-Classification measure
