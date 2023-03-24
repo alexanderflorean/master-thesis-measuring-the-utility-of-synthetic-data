@@ -318,7 +318,7 @@ def CSTest_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metad
 def CrossClassification_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     # get categorical columns, 
     # identify if they are binary or multiclass, 
-    # run respective MLEfficacy algorithm
+    # run respective MLEfficacy algorithm, returns the F1-score
     # TODO: Document
     # TODO: consideration, the measure produces different results everytime it is run, should it therefore 
     # multiple times then calculate the average?
