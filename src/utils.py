@@ -4,8 +4,9 @@ import yaml
 
 import pandas as pd
 from pycaret.classification import setup
+from sdmetrics.utils import get_columns_from_metadata, get_type_from_column_meta
 
-def getPicklesFromDir(path: str):
+def getPicklesFromDir(path: str) -> list[dict]:
     """    Returns all pickles in the provided path as a list.
 
     In: 
@@ -27,7 +28,7 @@ def getPicklesFromDir(path: str):
 
     return pickles
 
-def getExperimentConfig():
+def getExperimentConfig() -> dict:
     """     Returns the YAML experiment configuration that contains all 
     global experiment settings
 
@@ -50,3 +51,17 @@ def run_pycaret_setup(data_path: str, setup_param: dict):
         **setup_param 
     )
     return pycaret_setup
+
+def get_categorical_indicies(data:pd.DataFrame, metadata:dict) -> list[int]:
+    """ Returns a list of indices of the categorical columns in the dataset """
+    
+    indices = []
+    
+    columns = get_columns_from_metadata(metadata)
+    for col in columns:
+        col_type = get_type_from_column_meta(columns[col])
+        if col_type == 'categorical' or col_type == 'boolean':
+            col_index = data.columns.get_loc(col)
+            indices.append(col_index)
+            
+    return indices
