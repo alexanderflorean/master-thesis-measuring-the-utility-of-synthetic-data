@@ -1,6 +1,7 @@
 import pandas as pd
-from math import sqrt
 import numpy as np
+from math import sqrt
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
@@ -13,8 +14,10 @@ from sdmetrics.single_table.multi_single_column import KSComplement, CSTest
 from sdmetrics.single_table.efficacy import MulticlassMLPClassifier, BinaryMLPClassifier
 from sdmetrics.utils import get_columns_from_metadata, get_type_from_column_meta
 
+from utils import get_categorical_indicies
+
 ### Start - pMSE & S_pMSE
-def compute_propensity(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=LogisticRegression()) -> dict:
+def compute_propensity(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=LogisticRegression(), random_state=None) -> dict:
     """
     Uses Logistic Regression from sklearn to compute the propensity
     of predicting the synthetic data, i.e. the probability that
@@ -45,7 +48,7 @@ def compute_propensity(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, 
     Z = combined_data.drop(columns='S')   # remove target label
 
     # train-test split
-    X_train, X_test, y_train, y_test = train_test_split(Z, combined_data['S'], test_size=0.3, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(Z, combined_data['S'], test_size=0.3, random_state=random_state)
 
     n_o_test = sum(y_test == 0)  # number of original samples in the test data
     n_s_test = sum(y_test == 1)  # number of synthetic samples in the test data
@@ -130,22 +133,35 @@ def s_pmse(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=L
 
 
 ### Start - Cluster analysis
-def calculate_cluster_weight(target_cluster_data_count:int, cluster_data_count:int, total_data_count:int) -> float:
+def calculate_cluster_weight(target_cluster_data_count:int, cluster_data_count:int, total_data_count:int, weight_type:str="count") -> float:
     """
     Calculate the approximate standard error for the percentage of the 
     target count in the provided cluster data.
 
     Args:
-        target_cluster_data_count (int): the number of target data points in the cluster
-        cluster_data_count (int): the total number of data points in the cluster
-        total_data_count (int): the total number of data points across all clusters
+        target_cluster_data_count: (int)
+            The number of target data points in the cluster
+
+        cluster_data_count: (int)
+            The total number of data points in the cluster
+
+        total_data_count: (int)
+            The total number of data points across all clusters
+
+        weight_type: (str), default="count"
+            "approx": The approximate standard error for the given cluster over all samples
+            "count": The the number of samples in the cluster divided by the total number of samples in the dataset
 
     Returns:
-        float: The approximate standard error for the given cluster over all samples
+        float: the computed weight
     """
-    percentage = target_cluster_data_count / cluster_data_count
-
-    return np.sqrt((percentage * (1 - percentage)) / total_data_count)
+    if weight_type == "approx":
+        percentage = target_cluster_data_count / cluster_data_count
+        return np.sqrt((percentage * (1 - percentage)) / total_data_count)
+    elif weight_type == "count":
+        return cluster_data_count #/ total_data_count
+    else:
+        raise ValueError(f"Unknown weight type: {weight_type}")
 
 
 def standardize_select_columns(data: pd.DataFrame, indices_to_exclude: list) -> pd.DataFrame:
@@ -160,24 +176,27 @@ def standardize_select_columns(data: pd.DataFrame, indices_to_exclude: list) -> 
         pd.DataFrame: The standardized DataFrame except for specified columns.
 
     """
-    # TODO: check if correct implementation
     st_data = data.copy()
     scaler = StandardScaler()
+
     column_indices = np.arange(data.shape[1])
 
-    columns_to_standardize = np.setdiff1d(column_indices, indices_to_exclude)
+    # Check for indices out of bound
+    diff = set(indices_to_exclude) - set(column_indices)
+    if diff:
+        raise IndexError(f"indicies_to_exclude contains index not in the columns of the dataset: {', '.join(map(str , diff))}")
 
+    columns_to_standardize = np.setdiff1d(column_indices, indices_to_exclude)
     st_data.iloc[:, columns_to_standardize] = scaler.fit_transform(st_data.iloc[:, columns_to_standardize])
 
     return st_data
 
 
-
-def cluster_analysis_metric(original_data:pd.DataFrame, 
+def cluster_metric(original_data:pd.DataFrame, 
                             synthetic_data:pd.DataFrame, 
                             num_clusters:int, 
-                            categorical_columns:list[int]=None,
-                            random_state:int=42) -> float:
+                            metadata:dict,
+                            random_state=None) -> float:
     """
     Calculate the cluster analysis metric for the given original and synthetic datasets.
 
@@ -200,9 +219,11 @@ def cluster_analysis_metric(original_data:pd.DataFrame,
         float: The cluster analysis metric.
     """
 
-    combined_data = pd.concat([original_data, synthetic_data], axis=0)
+    combined_data = pd.concat([original_data, synthetic_data], axis=0, copy=True, ignore_index=True)
 
-    if(categorical_columns == None):
+    categorical_columns = get_categorical_indicies(original_data, metadata)
+
+    if(categorical_columns == []):
         # Contains only numerical cols, standardize the combined data
         scaled_combined_data = StandardScaler().fit_transform(combined_data)
         # Cluster the scaled data with sklearn.KMeans()
@@ -211,10 +232,13 @@ def cluster_analysis_metric(original_data:pd.DataFrame,
 
     else:
         # Perform clustering on the combined data using KPrototypes, it already encodes categorical attributes
-        # Standardize non-categorical columns
         scaled_combined_data = standardize_select_columns(combined_data, indices_to_exclude=categorical_columns)
-        kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=random_state).fit(combined_data, categorical=categorical_columns)
-        cluster_labels = kproto.labels_
+        # TODO: remove logg
+        print(f"num samples data: {len(combined_data)}, num_klusters:{num_clusters}")
+        kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=random_state, n_jobs=1)
+        kproto.fit(scaled_combined_data, categorical=categorical_columns)
+        
+        cluster_labels = kproto.labels_  # returns the labels with same indeces as the learned dataset
 
     
     original_data_count = original_data.shape[0]    # number of samples in original data
@@ -227,7 +251,6 @@ def cluster_analysis_metric(original_data:pd.DataFrame,
 
     for cluster_id in range(num_clusters):
 
-        # TODO: add column, and identify dataset sample from the cluster
         original_cluster_data_count = np.sum(cluster_labels[:original_data_count] == cluster_id)
         synthetic_cluster_data_count = np.sum(cluster_labels[original_data_count:] == cluster_id)
 
@@ -237,7 +260,8 @@ def cluster_analysis_metric(original_data:pd.DataFrame,
         weight = calculate_cluster_weight(
                                   target_cluster_data_count=original_cluster_data_count, 
                                   cluster_data_count=total_cluster_data_count, 
-                                  total_data_count=total_data_count
+                                  total_data_count=total_data_count,
+                                  weight_type="count"
                                   )
 
         Uc += weight * ((original_cluster_data_count / total_cluster_data_count) - constant_c)** 2
@@ -287,14 +311,6 @@ def GMLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFra
 ### End - Likehood measures
 
 ### Start - Difference in Empirical distributions type measures
-def KLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
-    # TODO: Document
-    # Computes the KLDivergence for both categorical and numeric columns and returns the mean of the values
-    continousKLDivergence = ContinousKLDivergence_metric(original_data, synthetic_data, metadata)
-    discreteKLDivergence = DiscreteKLDivergence_metric(original_data, synthetic_data, metadata)
-
-    return (continousKLDivergence + discreteKLDivergence) / 2
-
 def ContinousKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     # TODO: Document
     return ContinuousKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
@@ -310,6 +326,7 @@ def KSComplement_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame,
 
 def CSTest_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     # TODO: Document
+    # Might be better to use the TVComplement measure, as CSTest is mentioned to have some issues
     return CSTest.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
 ### End - Difference in Empirical distributions type measures
@@ -332,7 +349,7 @@ def CrossClassification_metric(original_data:pd.DataFrame, synthetic_data:pd.Dat
             target_data = original_data[col]
             uniques = target_data.nunique()
             if uniques == 2:
-                
+                # removes the target label from the training?
                 efficacy = BinaryMLPClassifier.compute(test_data=original_data, 
                                                        train_data=synthetic_data, 
                                                        metadata=metadata, 

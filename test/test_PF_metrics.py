@@ -1,9 +1,12 @@
-import sys
 import numpy as np
 import pandas as pd
-from math import sqrt
-from sklearn.tree import DecisionTreeClassifier
 
+from math import sqrt
+from sklearn.datasets import make_blobs
+
+import sys, os
+# quick fix for ModuleNotFoundError
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../src')
 from src.PF_metrics import *
 
 np.random.seed(42)
@@ -33,39 +36,79 @@ def test_s_pmse():
     s_pmse_score = s_pmse(original_df.copy(), synthetic_df.copy())
     assert isinstance(s_pmse_score, float), "S_pMSE result is not a float"
 
+def test_cluster_metric():
+
+    # Create sample original_data DataFrame
+    original_data, _ = make_blobs(n_samples=100, centers=3, random_state=42)
+    original_data = pd.DataFrame(original_data, columns=['A', 'B'])
+    original_data['S'] = 0
+
+    # Create sample synthetic_data DataFrame
+    synthetic_data, _ = make_blobs(n_samples=100, centers=3, random_state=24)
+    synthetic_data = pd.DataFrame(synthetic_data, columns=['A', 'B'])
+    synthetic_data['S'] = 1
+
+    # Create metadata dictionary
+    metadata = {
+        'columns': {
+            'A': {'type': 'numeric'},
+            'B': {'type': 'numeric'},
+            'S': {'type': 'boolean'},
+        }
+    }
+
+    # Call cluster_metric with sample data and metadata
+    num_clusters = 3
+    actual_metric = cluster_metric(original_data, synthetic_data, num_clusters, metadata, random_state=42)
+
+    # Compare the result with an expected metric value
+    expected_metric = 0.02  # Replace with an expected metric value based on your sample data
+    np.testing.assert_almost_equal(actual_metric, expected_metric, decimal=3)
+
 
 def test_standardize_select_columns():
     # Prepare sample data
-    data = pd.DataFrame({
+    input_data = pd.DataFrame({
         'A': [1, 2, 3, 4, 5],
-        'B': [12, 24, 36, 48, 60],
-        'C': [100, 200, 300, 400, 500]
+        'B': [True, False, True, False, False],
+        'C': [33, 24, 16, 58, 60],
+        'D': [1, 1, 2, 0, 0],
+        'E': [5, 382, 389, 411, 502],
     })
+    categorical_columns = [1, 3]
+
+    expected = input_data.copy()
+
+    scaler = StandardScaler()
+
+    s_data = input_data.copy()
+    s_data = s_data.drop(columns=s_data.columns[categorical_columns])
+
+    scaled = scaler.fit_transform(s_data)
+
+    expected['A'] = scaled.T[0]
+    expected['C'] = scaled.T[1]
+    expected['E'] = scaled.T[2]
 
     # Test standardizing all columns
-    standardized_data = standardize_select_data(data, [])
-    print(standardized_data)
-    assert np.isclose(standardized_data.mean(), 0).all()
-    assert np.isclose(standardized_data.std(), 1).all()
+    actual = standardize_select_columns(input_data, categorical_columns)
 
-    # Test standardizing specific columns and excluding one
-    standardized_data = standardize_select_data(data, [1])
-    assert np.isclose(standardized_data['A'].mean(), 0)
-    assert np.isclose(standardized_data['A'].std(), 1)
-    assert np.isclose(standardized_data['C'].mean(), 0)
-    assert np.isclose(standardized_data['C'].std(), 1)
-    assert not np.isclose(standardized_data['B'].mean(), 0)
-    assert not np.isclose(standardized_data['B'].std(), 1)
+    #print("\nExpected: ")
+    #print(expected)
 
-    # Test standardizing with an invalid index
+    #print("\nOutput: ")
+    #print(actual)
+
+    assert np.isclose(expected['A'], actual['A']).all()
+    assert np.isclose(expected['B'], actual['B']).all()
+    assert np.isclose(expected['C'], actual['C']).all()
+    assert np.isclose(expected['D'], actual['D']).all()
+    assert np.isclose(expected['E'], actual['E']).all()
+
+    # Test standardizing with invalid indices
     try:
-        standardized_data = standardize_select_data(data, [3])
+        standardized_data = standardize_select_columns(input_data, [13, 20])
     except IndexError:
         assert True
     else:
         assert False
-
-    # Test with an empty DataFrame
-    empty_data = pd.DataFrame()
-    standardized_empty_data = standardize_select_data(empty_data, [])
-    assert standardized_empty_data.empty
