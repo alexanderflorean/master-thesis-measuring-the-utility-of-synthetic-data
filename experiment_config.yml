@@ -40,7 +40,7 @@ clf:    # Settings for classification modelling
                 #'lightgbm'    #Light Gradient Boosting Machine
                 ]   
     tuning_param:  # TODO: further include more relevant parameters
-        n_iter: 10             # Number of iterations to run the tune_model, i.e. n_iter paramter
+        n_iter: 100             # Number of iterations to run the tune_model, i.e. n_iter paramter
         optimize: 'Accuracy'   # The target metric to optimize against
 
 
@@ -105,5 +105,5 @@ ctgan_param:
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
-    num_sd: 1  # how many copies of SDG and synthetic datasets to create for each setting 
+    num_sd: 3  # how many copies of SDG and synthetic datasets to create for each setting 
 ...
