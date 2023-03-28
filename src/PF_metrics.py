@@ -14,7 +14,7 @@ from sdmetrics.single_table.multi_single_column import KSComplement, CSTest
 from sdmetrics.single_table.efficacy import MulticlassMLPClassifier, BinaryMLPClassifier
 from sdmetrics.utils import get_columns_from_metadata, get_type_from_column_meta
 
-from utils import get_categorical_indicies
+from utils import get_categorical_indicies, timefunction
 
 ### Start - pMSE & S_pMSE
 def compute_propensity(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=LogisticRegression(), random_state=None) -> dict:
@@ -26,12 +26,16 @@ def compute_propensity(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, 
     The method assumes the original and synthetic data has
     the same features.
 
-    Args:
+    Parameters:
+	-----------
+
         original_data: pandas.DataFrame
         synthetic_data: pandas.DataFrame
         classifier: scikit-learn classifier
 
     Returns:
+	--------
+
         Dictionary with the following:
             'score': List of probabilities for predicting the samples are synthetic data
             'no': number of original data samples in the test data
@@ -62,18 +66,23 @@ def compute_propensity(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, 
     return {'score': score, 'no': n_o_test, 'ns': n_s_test}
 
 
+@timefunction
 def pmse(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=LogisticRegression()) -> float:
     """
     Calculate the propensity mean-squared error.
     Algorithm implemented as described in DOI: 10.1111/rssa.12358
 
-    Args:
+    Parameters:
+	-----------
+
         original_data: pandas.DataFrame
         synthetic_data: pandas.DataFrame
         classifier: (optional) scikit-learn classifier, 
                     default=LogisticRegression 
 
     Returns:
+	--------
+
         float: pMSE score
     """
     # TODO: neeed to double check implementation
@@ -92,17 +101,23 @@ def pmse(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=Log
     return pmse_score
 
 
+@timefunction
 def s_pmse(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, classifier=LogisticRegression()) -> float:
     """
     Calculate the standardized propensity mean-squared error
         Algorithm implemented as described in DOI: 10.1111/rssa.12358
-    Args:
+
+    Parameters:
+	-----------
+
         original_data: pandas.DataFrame
         synthetic_data: pandas.DataFrame
         classifier: (optional) scikit-learn classifier, 
                     default=LogisticRegression 
 
     Returns:
+	--------
+
         float: standardized pMSE score
     """
     # TODO: neeed to double check implementation
@@ -138,7 +153,9 @@ def calculate_cluster_weight(target_cluster_data_count:int, cluster_data_count:i
     Calculate the approximate standard error for the percentage of the 
     target count in the provided cluster data.
 
-    Args:
+    Parameters:
+	-----------
+
         target_cluster_data_count: (int)
             The number of target data points in the cluster
 
@@ -153,6 +170,8 @@ def calculate_cluster_weight(target_cluster_data_count:int, cluster_data_count:i
             "count": The the number of samples in the cluster divided by the total number of samples in the dataset
 
     Returns:
+	--------
+
         float: the computed weight
     """
     if weight_type == "approx":
@@ -168,11 +187,15 @@ def standardize_select_columns(data: pd.DataFrame, indices_to_exclude: list) -> 
     """
     Standardizes a pandas DataFrame with the exception of specified columns.
 
-    Args:
+    Parameters:
+	-----------
+
         data (pd.DataFrame): The input DataFrame to standardize.
         indices_to_exclude (list): A list of column indices to exclude from standardization.
 
     Returns:
+	--------
+
         pd.DataFrame: The standardized DataFrame except for specified columns.
 
     """
@@ -192,6 +215,7 @@ def standardize_select_columns(data: pd.DataFrame, indices_to_exclude: list) -> 
     return st_data
 
 
+@timefunction
 def cluster_metric(original_data:pd.DataFrame, 
                             synthetic_data:pd.DataFrame, 
                             num_clusters:int, 
@@ -202,7 +226,9 @@ def cluster_metric(original_data:pd.DataFrame,
 
         Algorthim implemented as described in DOI: 10.29012/jpc.v1i1.568
     
-    Args:
+    Parameters:
+	-----------
+
         original_data:  pandas.DataFrame
             The original dataset.
 
@@ -216,11 +242,14 @@ def cluster_metric(original_data:pd.DataFrame,
             List of indices of columns that contain categorical data
 
     Returns:
+	--------
+
         float: The cluster analysis metric.
     """
 
     combined_data = pd.concat([original_data, synthetic_data], axis=0, copy=True, ignore_index=True)
 
+    # TODO: to be removed, just a current quick workaround
     categorical_columns = [] #get_categorical_indicies(original_data, metadata)
 
     if(categorical_columns == []):
@@ -271,6 +300,7 @@ def cluster_metric(original_data:pd.DataFrame,
 ### End - Cluster analysis
 
 ### Start - Likehood measures:  Looks at the likelihood of the synthetic data belonging to the real data. 
+@timefunction
 def BNLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     """ Uses Bayesian Network to learn the distribution of the real data to then average 
     likelihood for all samples on wether they belong to the real data, range[0,1], where 0 means it doesn't
@@ -284,6 +314,7 @@ def BNLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame,
     """
     return BNLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
+@timefunction
 def BNLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     """ Returns the log of BNLikelihood
     Range[-inf, 1]
@@ -294,6 +325,7 @@ def BNLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFra
     """
     return BNLogLikelihood.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
+@timefunction
 def GMLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     """ Uses multiple Gaussian mixtures models to learn the distribution of the real data to then returns 
     the average likelihood for all samples on wether they belongs to the real data or not.
@@ -311,34 +343,37 @@ def GMLogLikelihood_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFra
 ### End - Likehood measures
 
 ### Start - Difference in Empirical distributions type measures
+@timefunction
 def ContinousKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
-    # TODO: Document
     return ContinuousKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
+@timefunction
 def DiscreteKLDivergence_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
-    # TODO: Document
     return DiscreteKLDivergence.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
 
+@timefunction
 def KSComplement_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
-    # TODO: Document
+    # Documentation: https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/kscomplement
     return KSComplement.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
+@timefunction
 def CSTest_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
-    # TODO: Document
+    # Documentation: https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/cstest
     # Might be better to use the TVComplement measure, as CSTest is mentioned to have some issues
     return CSTest.compute(real_data=original_data, synthetic_data=synthetic_data, metadata=metadata)
 
 ### End - Difference in Empirical distributions type measures
 
 ### Start - Cross-Classification measure
+@timefunction
 def CrossClassification_metric(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict) -> float:
     # get categorical columns, 
     # identify if they are binary or multiclass, 
     # run respective MLEfficacy algorithm, returns the F1-score
     # TODO: Document
-    # TODO: consideration, the measure produces different results everytime it is run, should it therefore 
-    # multiple times then calculate the average?
+    # TODO/consideration, the measure produces different results everytime it is run, should it therefore 
+    # multiple times then calculate the average or use random-state seed?
 
     results = []
     columns = get_columns_from_metadata(metadata)
@@ -350,11 +385,13 @@ def CrossClassification_metric(original_data:pd.DataFrame, synthetic_data:pd.Dat
             uniques = target_data.nunique()
             if uniques == 2:
                 # removes the target label from the training?
+                # Documentation: https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/ml-efficacy-single-table/binary-classification
                 efficacy = BinaryMLPClassifier.compute(test_data=original_data, 
                                                        train_data=synthetic_data, 
                                                        metadata=metadata, 
                                                        target=col)
             else:
+                # Documentation: https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/ml-efficacy-single-table/multiclass-classification
                 efficacy = MulticlassMLPClassifier.compute(test_data=original_data,
                                                            train_data=synthetic_data, 
                                                            metadata=metadata, 
@@ -379,51 +416,57 @@ def compute_all_pf_measures(original_data:pd.DataFrame, synthetic_data:pd.DataFr
     k_5  = round( (original_data.shape[0] + synthetic_data.shape[0]) * five_percent)
     k_10 = round( (original_data.shape[0] + synthetic_data.shape[0]) * ten_percent)
 
-    
-    measures = {
-        'DatasetName': SD_id,
-        
-        'pMSE': pmse(original_data=original_data, synthetic_data=synthetic_data),
-        
-        'SpMSE': s_pmse(original_data=original_data, synthetic_data=synthetic_data),
-        
-        'Cluster_1': cluster_metric(original_data=original_data, 
+    measures = {}
+
+    measures['DatasetName'] = SD_id
+
+    score, time = pmse(original_data=original_data, synthetic_data=synthetic_data)
+    measures['pMSE'] = score
+    measures['pMSE_time'] = time
+
+    score, time = s_pmse(original_data=original_data, synthetic_data=synthetic_data)
+    measures['s_pMSE'] = score
+    measures['s_pMSE_time'] = time
+
+    score, time = cluster_metric(original_data=original_data, 
                                     synthetic_data=synthetic_data, 
                                     num_clusters=k_1, 
-                                    metadata=metadata),   
-        # TODO: fix 5 & 10 percent
-        #'Cluster_5': cluster_metric(original_data=original_data, 
-        #                            synthetic_data=synthetic_data, 
-        #                            num_clusters=k_5, 
-        #                            metadata=metadata),  
-        
-        #'Cluster_10': cluster_metric(original_data=original_data, 
-        #                            synthetic_data=synthetic_data, 
-        #                            num_clusters=k_10, 
-        #                            metadata=metadata), 
-        
-        'BNLikelihood': BNLikelihood_metric(original_data=original_data, 
-                                            synthetic_data=synthetic_data, 
-                                            metadata=metadata),
-        
-        'BNLogLikelihood': BNLogLikelihood_metric(original_data=original_data, 
-                                                  synthetic_data=synthetic_data, 
-                                                  metadata=metadata),
-        
-        'GMLogLikelihood': GMLogLikelihood_metric(original_data=original_data, 
-                                                  synthetic_data=synthetic_data, 
-                                                  metadata=metadata),
+                                    metadata=metadata)
+    measures['Cluster_1'] = score
+    measures['Cluster_1_time'] = time
 
-        'ContinousKLDivergence': ContinousKLDivergence_metric(original_data, synthetic_data, metadata),
+    score, time = BNLogLikelihood_metric(original_data=original_data, 
+                                        synthetic_data=synthetic_data, 
+                                        metadata=metadata)
+    measures['BNLogLikelihood'] = score
+    measures['BNLogLikelihood_time'] = time
+
+
+    score, time = GMLogLikelihood_metric(original_data=original_data, 
+                                        synthetic_data=synthetic_data, 
+                                        metadata=metadata)
+    measures['GMLogLikelihood'] = score
+    measures['GMLogLikelihood_time'] = time
         
-        'DiscreteKLDivergence': DiscreteKLDivergence_metric(original_data, synthetic_data, metadata),
+    score, time = ContinousKLDivergence_metric(original_data, synthetic_data, metadata)
+    measures['ContinousKLDivergence'] = score
+    measures['ContinousKLDivergence_time'] = time
+
+    score, time = DiscreteKLDivergence_metric(original_data, synthetic_data, metadata)
+    measures['DiscreteKLDivergence'] = score
+    measures['DiscreteKLDivergence_time'] = time
         
-        'KSComplement': KSComplement_metric(original_data, synthetic_data, metadata),
+    score, time = KSComplement_metric(original_data, synthetic_data, metadata)
+    measures['KSComplement'] = score
+    measures['KSComplement_time'] = time
         
-        'CSTest': CSTest_metric(original_data, synthetic_data, metadata),
+    score, time = CSTest_metric(original_data, synthetic_data, metadata)
+    measures['CSTest'] = score
+    measures['CSTest_time'] = time
         
-        'CrossClassification': CrossClassification_metric(original_data, synthetic_data, metadata)
-    }
+    score, time = CrossClassification_metric(original_data, synthetic_data, metadata)
+    measures['CrossClassification'] = score
+    measures['CrossClassification_time'] = time
     
     results_df = pd.DataFrame(data=measures, index=[0])
     return results_df

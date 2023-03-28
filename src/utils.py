@@ -1,8 +1,10 @@
 import os
 import cloudpickle
 import yaml
-
+import time
 import pandas as pd
+
+from functools import wraps
 from pycaret.classification import setup
 from sdmetrics.utils import get_columns_from_metadata, get_type_from_column_meta
 
@@ -65,3 +67,14 @@ def get_categorical_indicies(data:pd.DataFrame, metadata:dict) -> list[int]:
             indices.append(col_index)
             
     return indices
+
+def timefunction(func):
+    @wraps(func)
+    def timefunction_wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+
+        total_time = end_time - start_time
+        return result, total_time
+    return timefunction_wrapper
