@@ -221,7 +221,7 @@ def cluster_metric(original_data:pd.DataFrame,
 
     combined_data = pd.concat([original_data, synthetic_data], axis=0, copy=True, ignore_index=True)
 
-    categorical_columns = get_categorical_indicies(original_data, metadata)
+    categorical_columns = [] #get_categorical_indicies(original_data, metadata)
 
     if(categorical_columns == []):
         # Contains only numerical cols, standardize the combined data
@@ -234,11 +234,11 @@ def cluster_metric(original_data:pd.DataFrame,
         # Perform clustering on the combined data using KPrototypes, it already encodes categorical attributes
         scaled_combined_data = standardize_select_columns(combined_data, indices_to_exclude=categorical_columns)
         # TODO: remove logg
-        print(f"num samples data: {len(combined_data)}, num_klusters:{num_clusters}")
+        print(f"num samples data: {len(scaled_combined_data)}, num_klusters:{num_clusters}")
         kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=random_state, n_jobs=1)
-        kproto.fit(scaled_combined_data, categorical=categorical_columns)
+        kproto.fit(scaled_combined_data, categorical=[8])
         
-        cluster_labels = kproto.labels_  # returns the labels with same indeces as the learned dataset
+        cluster_labels = kproto.labels_  # returns the labels with same indices as the learned dataset
 
     
     original_data_count = original_data.shape[0]    # number of samples in original data
@@ -365,3 +365,66 @@ def CrossClassification_metric(original_data:pd.DataFrame, synthetic_data:pd.Dat
     return np.mean(results)
 
 ### End - Cross-Classification measure
+
+### Computes all metrics defined above
+def compute_all_pf_measures(original_data:pd.DataFrame, synthetic_data:pd.DataFrame, metadata:dict, SD_id:str) -> pd.DataFrame:
+    
+    # get number of clusters, using the combined number of samples in the synthetic & original data, 
+    # and round it to an integer
+    one_percent = 0.01
+    five_percent = 0.05
+    ten_percent = 0.1
+    
+    k_1  = round( (original_data.shape[0] + synthetic_data.shape[0]) * one_percent)
+    k_5  = round( (original_data.shape[0] + synthetic_data.shape[0]) * five_percent)
+    k_10 = round( (original_data.shape[0] + synthetic_data.shape[0]) * ten_percent)
+
+    
+    measures = {
+        'DatasetName': SD_id,
+        
+        'pMSE': pmse(original_data=original_data, synthetic_data=synthetic_data),
+        
+        'SpMSE': s_pmse(original_data=original_data, synthetic_data=synthetic_data),
+        
+        'Cluster_1': cluster_metric(original_data=original_data, 
+                                    synthetic_data=synthetic_data, 
+                                    num_clusters=k_1, 
+                                    metadata=metadata),   
+        # TODO: fix 5 & 10 percent
+        #'Cluster_5': cluster_metric(original_data=original_data, 
+        #                            synthetic_data=synthetic_data, 
+        #                            num_clusters=k_5, 
+        #                            metadata=metadata),  
+        
+        #'Cluster_10': cluster_metric(original_data=original_data, 
+        #                            synthetic_data=synthetic_data, 
+        #                            num_clusters=k_10, 
+        #                            metadata=metadata), 
+        
+        'BNLikelihood': BNLikelihood_metric(original_data=original_data, 
+                                            synthetic_data=synthetic_data, 
+                                            metadata=metadata),
+        
+        'BNLogLikelihood': BNLogLikelihood_metric(original_data=original_data, 
+                                                  synthetic_data=synthetic_data, 
+                                                  metadata=metadata),
+        
+        'GMLogLikelihood': GMLogLikelihood_metric(original_data=original_data, 
+                                                  synthetic_data=synthetic_data, 
+                                                  metadata=metadata),
+
+        'ContinousKLDivergence': ContinousKLDivergence_metric(original_data, synthetic_data, metadata),
+        
+        'DiscreteKLDivergence': DiscreteKLDivergence_metric(original_data, synthetic_data, metadata),
+        
+        'KSComplement': KSComplement_metric(original_data, synthetic_data, metadata),
+        
+        'CSTest': CSTest_metric(original_data, synthetic_data, metadata),
+        
+        'CrossClassification': CrossClassification_metric(original_data, synthetic_data, metadata)
+    }
+    
+    results_df = pd.DataFrame(data=measures, index=[0])
+    return results_df
+
