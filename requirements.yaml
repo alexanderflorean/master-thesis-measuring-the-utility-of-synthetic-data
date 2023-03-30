@@ -124,7 +124,6 @@ dependencies:
   - numpy-base=1.23.5=py39h4da318b_0
   - openjpeg=2.4.0=h4fc8c34_0
   - openssl=1.1.1t=h2bbff1b_0
-  - packaging=21.3=pyhd3eb1b0_0
   - pandas=1.5.3=py39hf11a4ad_0
   - pandoc=2.12=haa95532_3
   - pandocfilters=1.5.0=pyhd3eb1b0_0
@@ -206,6 +205,7 @@ dependencies:
     - async-timeout==4.0.2
     - autopep8==2.0.1
     - autoviz==0.1.58
+    - black==23.3.0
     - bokeh==2.4.3
     - boto3==1.26.64
     - botocore==1.29.64
@@ -250,6 +250,7 @@ dependencies:
     - ipykernel==6.21.0
     - ipywidgets==8.0.4
     - isoduration==20.11.0
+    - isort==5.12.0
     - itsdangerous==2.1.2
     - jmespath==1.0.1
     - jsonpointer==2.3
@@ -278,15 +279,18 @@ dependencies:
     - mlflow==1.30.0
     - multidict==6.0.4
     - multimethod==1.9.1
+    - mypy-extensions==1.0.0
     - nbclassic==0.5.1
     - networkx==3.0
     - nltk==3.8.1
     - numba==0.56.4
     - oauthlib==3.2.2
     - orjson==3.8.5
+    - packaging==23.0
     - pandas-profiling==3.6.6
     - panel==0.12.7
     - param==1.12.3
+    - pathspec==0.11.1
     - patsy==0.5.3
     - phik==0.12.3
     - plotly-resampler==0.8.4rc1

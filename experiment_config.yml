@@ -23,9 +23,9 @@ clf:    # Settings for classification modelling
     # choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
     ml_models: ['lr',         # Logistic Regression
                 'knn',        # K-Nearest Neighbor
-                'nb',         # Naive Bayes
+                #'nb',         # Naive Bayes
                 'svm',        # Support Vector Machines
-                'rbfsvm',     # SVM - radial basis function kernel
+                #'rbfsvm',     # SVM - radial basis function kernel
                 #'gpc',        # Gaussian Process Classifier
                 # 'mlp',      # Multilayer Perceptron  TODO: fix  some error exceeding optimization ...
                 # 'ridge',    # Ridge Classifier TODO: some error shows up when ridge gets choosen
@@ -40,7 +40,7 @@ clf:    # Settings for classification modelling
                 #'lightgbm'    #Light Gradient Boosting Machine
                 ]   
     tuning_param:  # TODO: further include more relevant parameters
-        n_iter: 100             # Number of iterations to run the tune_model, i.e. n_iter paramter
+        n_iter: 2             # Number of iterations to run the tune_model, i.e. n_iter paramter
         optimize: 'Accuracy'   # The target metric to optimize against
 
 
@@ -97,11 +97,11 @@ ctgan_param:
           batch_size: 6
           pac: 2
           verbose: True
-        Q2:
-          epochs: 300
-          batch_size: 50
-          pac: 10
-          verbose: True
+        #Q2:
+        #  epochs: 300
+        #  batch_size: 50
+        #  pac: 10
+        #  verbose: True
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   

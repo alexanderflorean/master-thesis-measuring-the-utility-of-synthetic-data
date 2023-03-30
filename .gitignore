@@ -1,10 +1,19 @@
 #experiment specific
+data/raw/*
+!data/raw/.gitkeep
 data/real/*
 !data/real/.gitkeep
 data/synthetic/*
 !data/synthetic/.gitkeep
 logs/*
 !logs/.gitkeep
+pickles/SDGs/*
+!pickles/SDGs/.gitkeep
+pickles/pycaret_setup/*
+!pickles/pycaret_setup/.gitkeep
+pickles/models/*
+!pickles/models/.gitkeep
+notebooks/mlruns
 mlruns/*
 #mlflow
 .trash
