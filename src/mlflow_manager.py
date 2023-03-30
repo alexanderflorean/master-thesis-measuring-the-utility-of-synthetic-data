@@ -187,7 +187,7 @@ class MLFlowManager:
             The type of score, i.e. validation or test score
         """
         filename = f"{report_name}.html"
-        score_report.to_html(path_or_buf=filename)
+        score_report.to_html(buf=filename)
         self.log_artifact(filename)
         if os.path.isfile(filename):
             os.remove(filename)
