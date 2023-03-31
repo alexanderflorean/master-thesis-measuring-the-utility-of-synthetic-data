@@ -15,6 +15,7 @@ class MLFlowManager:
     The MLFlowManager class is a high-level interface for managing MLflow experiments, runs, logging, and artifacts.
     """
 
+
     def __init__(self, experiment_name: str):
         """
         Initialize a new MLFlowManager for the given experiment name.
@@ -25,6 +26,9 @@ class MLFlowManager:
             The name of the MLflow experiment.
 
         """
+        self.test_data_filename = "test_data.csv"
+        self.run_name_with_test_data = "Original data models"
+
         self.experiment_name = experiment_name
         self.mlflow_client = MlflowClient()
 
@@ -218,7 +222,7 @@ class MLFlowManager:
         mlflow.set_tag("Dataset Type", tag_value)
 
     def save_test_holdout_data(
-        self, test_data: pd.DataFrame, artifact_path: str = "test_holdout_data"
+        self, test_data: pd.DataFrame, 
     ):
         """
         Save the test-holdout data as an artifact of the current run.
@@ -230,13 +234,12 @@ class MLFlowManager:
         artifact_path: str
             The destination path within the run's artifact URI. Optional.
         """
-        filename = f"{artifact_path}.csv"
-        test_data.to_csv(path_or_buf=filename, index=False)
-        self.log_artifact(filename, artifact_path)
-        if os.path.isfile(filename):
-            os.remove(filename)
+        test_data.to_csv(path_or_buf=self.test_data_filename, index=False)
+        self.log_artifact(self.test_data_filename)
+        if os.path.isfile(self.test_data_filename):
+            os.remove(self.test_data_filename)
         else:
-            raise FileNotFoundError(f"Something went wrong, the file: {filename} was not found, for removal.")
+            raise FileNotFoundError(f"Something went wrong, the file: {self.test_data_filename} was not found, for removal.")
 
     def end_run(self):
         """
@@ -287,18 +290,9 @@ class MLFlowManager:
         """
         return self.mlflow_client.get_run(run_id)
 
-    def get_test_holdout_data(
-        self, run_id: str, artifact_path: str = "test_holdout_data"
-    ) -> pd.DataFrame:
+    def get_test_holdout_data(self) -> pd.DataFrame:
         """
-        Get the test-holdout data for a specific run by its ID.
-
-        Parameters:
-        ------------
-        run_id: str
-            The ID of the run.
-        artifact_path: str
-            The artifact path where the test-holdout data is stored. Optional.
+        Get the test-holdout data from a specific run by its ID.
 
         Returns:
         -------
@@ -310,15 +304,15 @@ class MLFlowManager:
         ValueError:
             If test-holdout data is not found for the given run ID.
         """
-        artifact_uri = self.mlflow_client.get_artifact_uri(run_id, artifact_path)
-        # local_path = mlflow.get_artifact_uri().replace("file://", "")
-        # local_file_path = os.path.join(local_path, run_id, artifact_path, "test_holdout_data.csv")
+        run_id = self.get_run_id_by_name(self.run_name_with_test_data)
+        run = mlflow.get_run(run_id)
+        file_path = f"{run.info.artifact_uri}/{self.test_data_filename}"
 
-        if os.path.exists(artifact_uri):
-            return pd.read_csv(artifact_uri)
+        if os.path.isfile(file_path.replace("file:///", "")):
+            return pd.read_csv(file_path)
         else:
             raise ValueError(
-                f"Test-holdout data not found for run ID '{run_id}' at '{artifact_uri}'"
+                f"Test-holdout data not found for run ID '{run_id}' at '{file_path}'"
             )
 
     def get_run_id_by_name(self, run_name: str) -> Optional[str]:
