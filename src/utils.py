@@ -57,6 +57,7 @@ def run_pycaret_setup(data_path: str, setup_param: dict, **kwargs):
 
 def get_categorical_indices(data: pd.DataFrame, metadata: dict) -> list[int]:
     """Returns a list of indices of the categorical columns in the dataset"""
+    print("TEST: in get ...")
 
     indices = []
 
@@ -71,6 +72,7 @@ def get_categorical_indices(data: pd.DataFrame, metadata: dict) -> list[int]:
 
 
 def timefunction(func):
+    """  Used to time the Population fidelity measures. """
     @wraps(func)
     def timefunction_wrapper(*args, **kwargs):
         start_time = time.perf_counter()

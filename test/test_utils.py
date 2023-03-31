@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.utils import *
+from src.utils import get_categorical_indices, unravel_metric_report
 
 
 def test_get_categorical_indices():
