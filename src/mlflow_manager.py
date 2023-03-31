@@ -292,7 +292,7 @@ class MLFlowManager:
 
     def get_test_holdout_data(self) -> pd.DataFrame:
         """
-        Get the test-holdout data from a specific run by its ID.
+        Get the test-holdout data from the most recent run with original dataset
 
         Returns:
         -------
