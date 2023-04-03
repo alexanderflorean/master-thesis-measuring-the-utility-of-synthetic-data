@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import Optional
+import matplotlib.pyplot as plt
 
 import mlflow
 import mlflow.sklearn
@@ -240,6 +241,25 @@ class MLFlowManager:
             os.remove(self.test_data_filename)
         else:
             raise FileNotFoundError(f"Something went wrong, the file: {self.test_data_filename} was not found, for removal.")
+
+    def save_plot(self, fig, file_name: str, artifact_path: Optional[str] = None):
+        """
+        Save a Matplotlib figure as an artifact of the current run.
+
+        Parameters:
+        ------------
+        fig: matplotlib.figure.Figure
+            The Matplotlib figure object to be saved.
+        file_name: str
+            The file name for the saved plot image (without extension).
+        artifact_path: Optional[str]
+            The destination path within the run's artifact URI. Optional.
+        """
+        temp_file_name = f"{file_name}.png"
+        fig.savefig(temp_file_name)
+        self.log_artifact(temp_file_name, artifact_path)
+        os.remove(temp_file_name)
+
 
     def end_run(self):
         """

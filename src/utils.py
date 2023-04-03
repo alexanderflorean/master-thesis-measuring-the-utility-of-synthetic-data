@@ -3,6 +3,8 @@ import re
 import time
 from functools import wraps
 
+import matplotlib.pyplot as plt
+
 import cloudpickle
 import pandas as pd
 import yaml
@@ -178,3 +180,16 @@ def extract_loss_info_from_stdout(input_str: str) -> dict:
         output_dict[dataset_id] = df
     # Return the dictionary containing all the extracted information
     return output_dict
+
+def create_loss_plot(dataset_id:str, loss_df:pd.DataFrame):
+
+    # Create the plot
+    fig, ax = plt.subplots()
+    ax.plot(loss_df['Epoch'], loss_df['Loss_G'], label='Loss Generator')
+    ax.plot(loss_df['Epoch'], loss_df['Loss_D'], label='Loss Discriminator')
+    ax.legend()
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel('Loss value')
+    ax.set_title(f"{dataset_id} - Gen vs Dis loss")
+
+    return fig
