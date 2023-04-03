@@ -1,4 +1,5 @@
 import os
+import re
 import time
 from functools import wraps
 
@@ -6,8 +7,7 @@ import cloudpickle
 import pandas as pd
 import yaml
 from pycaret.classification import setup
-from sdmetrics.utils import (get_columns_from_metadata,
-                             get_type_from_column_meta)
+from sdmetrics.utils import get_columns_from_metadata, get_type_from_column_meta
 
 
 def getPicklesFromDir(path: str) -> list[dict]:
@@ -72,7 +72,8 @@ def get_categorical_indices(data: pd.DataFrame, metadata: dict) -> list[int]:
 
 
 def timefunction(func):
-    """  Used to time the Population fidelity measures. """
+    """Used to time the Population fidelity measures."""
+
     @wraps(func)
     def timefunction_wrapper(*args, **kwargs):
         start_time = time.perf_counter()
@@ -132,3 +133,48 @@ def unravel_metric_report(report_dict: dict):
             flat_dict[key] = value
 
     return flat_dict
+
+
+def extract_loss_info_from_stdout(input_str: str) -> dict:
+    """ Extract the loss information from the standard output from the CTGAN method,
+            where the loss from each SDG is seperated by "#START#\n" and "#END#\n"
+    """
+    output_dict = {}
+
+    # Define a regular expression pattern to match each block of text between #START# and #END#
+    pattern = r"#START#\n(.+?)\n(.+?)#END#"
+
+    # Use the regular expression to find all matches in the input string
+    matches = re.findall(pattern, input_str, re.DOTALL)
+
+    # Iterate over the matches and extract the dataset id and data string for each block
+    for match in matches:
+        dataset_id = match[0].strip()  # The key is the first line of the block, stripped of any whitespace
+        data_str = match[1]     # The data string is the rest of the block
+
+        # Extract the values for each epoch and the corresponding loss values for Loss G and Loss D
+        epoch_list = [
+            int(re.findall(r"Epoch (\d+)", line)[0])
+            for line in data_str.split("\n")
+            if line.startswith("Epoch")
+        ]
+
+        loss_g_list = [
+            float(re.findall(r"Loss G: (.+?),", line)[0])
+            for line in data_str.split("\n")
+            if line.startswith("Epoch")
+        ]
+        loss_d_list = [
+            float(re.findall(r"Loss D: (.+)", line)[0])
+            for line in data_str.split("\n")
+            if line.startswith("Epoch")
+        ]
+
+        # Use the extracted values to create a Pandas DataFrame
+        df = pd.DataFrame(
+            {"Epoch": epoch_list, "Loss_G": loss_g_list, "Loss_D": loss_d_list}
+        )
+        # Add the DataFrame to the dictionary with the key value being the string after #START#
+        output_dict[dataset_id] = df
+    # Return the dictionary containing all the extracted information
+    return output_dict
