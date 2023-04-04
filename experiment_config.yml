@@ -42,6 +42,7 @@ clf:    # Settings for classification modelling
     tuning_param:  # TODO: further include more relevant parameters
         n_iter: 2             # Number of iterations to run the tune_model, i.e. n_iter paramter
         optimize: 'Accuracy'   # The target metric to optimize against
+        # The default tuning grids of pycaret can be found in https://github.com/pycaret/pycaret/blob/master/pycaret/containers/models/classification.py
 
 
 # CTGAN hyperparameters
@@ -97,21 +98,21 @@ ctgan_param:
           batch_size: 6
           pac: 2
           verbose: True #required (for capturing loss values)
-        #Q2:
-        #  epochs: 300
-        #  batch_size: 50
-        #  pac: 10
-        #  verbose: True #required (for capturing loss values)
-        #Q3:
-        #  epochs: 500
-        #  batch_size: 100
-        #  pac: 20
-        #  verbose: True #required (for capturing loss values)
-        #Q4:
-        #  epochs: 1500
-        #  batch_size: 300
-        #  pac: 20
-        #  verbose: True #required (for capturing loss values)
+        Q2:
+          epochs: 300
+          batch_size: 50
+          pac: 10
+          verbose: True #required (for capturing loss values)
+        Q3:
+          epochs: 500
+          batch_size: 100
+          pac: 20
+          verbose: True #required (for capturing loss values)
+        Q4:
+          epochs: 1500
+          batch_size: 300
+          pac: 20
+          verbose: True #required (for capturing loss values)
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
