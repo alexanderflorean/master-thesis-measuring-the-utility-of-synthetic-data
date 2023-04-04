@@ -12,10 +12,6 @@ REQ_FILENAME = requirements.yaml
 actv:
 	@conda activate $(CONDA_ENV_NAME)
 
-clean-logs:
-	@rm -r ./$(MLFLOW_LOG_DIR)/*
-	@rm -r ./$(SYS_LOG_DIR)/*
-
 save-env:
 	@conda env export > ./$(REQ_FILENAME)
 
