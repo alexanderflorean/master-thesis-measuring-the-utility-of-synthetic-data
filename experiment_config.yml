@@ -34,7 +34,7 @@ clf:    # Settings for classification modelling
                 #'et',         # Extra Trees Classifier
                 #'qda',        # Quadratic Discriminant Analysis
                 #'ada',        # Ada Boost Clasifier
-                #'gbc',        # Gradient Boosting Classifier
+                'gbc',        # Gradient Boosting Classifier
                 #'lda',        # Linear Dicriminant Analysis
                 #'xgboost',    # Extreme Gradient Boosting
                 #'lightgbm'    #Light Gradient Boosting Machine
@@ -96,14 +96,24 @@ ctgan_param:
           epochs: 10
           batch_size: 6
           pac: 2
-          verbose: True
+          verbose: True #required (for capturing loss values)
         #Q2:
         #  epochs: 300
         #  batch_size: 50
         #  pac: 10
-        #  verbose: True
+        #  verbose: True #required (for capturing loss values)
+        #Q3:
+        #  epochs: 500
+        #  batch_size: 100
+        #  pac: 20
+        #  verbose: True #required (for capturing loss values)
+        #Q4:
+        #  epochs: 1500
+        #  batch_size: 300
+        #  pac: 20
+        #  verbose: True #required (for capturing loss values)
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
-    num_sd: 3  # how many copies of SDG and synthetic datasets to create for each setting 
+    num_sd: 1  # how many copies of SDG and synthetic datasets to create for each setting 
 ...

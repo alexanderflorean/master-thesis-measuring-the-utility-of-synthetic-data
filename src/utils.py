@@ -59,7 +59,6 @@ def run_pycaret_setup(data_path: str, setup_param: dict, **kwargs):
 
 def get_categorical_indices(data: pd.DataFrame, metadata: dict) -> list[int]:
     """Returns a list of indices of the categorical columns in the dataset"""
-    print("TEST: in get ...")
 
     indices = []
 
@@ -193,3 +192,51 @@ def create_loss_plot(dataset_id:str, loss_df:pd.DataFrame):
     ax.set_title(f"{dataset_id} - Gen vs Dis loss")
 
     return fig
+
+def extract_filenames(directory, extension='.csv', return_relative_path=False):
+    """
+    Extracts a list of filenames from a directory with a specified file extension.
+
+    Args:
+        directory (str): The path to the directory to search for files.
+        extension (str): The file extension to search for. Defaults to '.txt'.
+        return_relative_path (bool): Whether to return the filenames with the directory path
+                              relative to the current working directory. Defaults to False.
+                              False: only return the filenames (no path).
+
+    Returns:
+        list: A list of filenames in the directory with the specified extension.
+    """
+    # Get the list of files in the directory
+    files = os.listdir(directory)
+
+    # Filter the list by file extension
+    files_filtered = [file for file in files if file.endswith(extension)]
+
+    # Return the list of filenames
+    if return_relative_path:
+        return [os.path.join(directory, file) for file in files_filtered]
+    else:
+        return files_filtered
+
+def get_synthetic_filepaths_from_original_data_id(original_data_id):
+    """
+    Returns a list of filepaths for the synthetic data that was generated 
+    on the specified original data id.
+
+    Args:
+        original_data_id: (string) the id for the original data.
+
+    Returns:
+        list: A list of filenames for the synthetic data that was generated on 
+        the specified original data
+    """
+
+    config=getExperimentConfig()
+    # Get the list of synthetic data filenames
+    synthetic_data_files = extract_filenames(config['folders']['sd_dir'])
+
+    # Filter the list by the dataset id
+    files_filtered = [filename for filename in synthetic_data_files if original_data_id in filename]
+
+    return files_filtered

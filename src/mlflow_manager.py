@@ -15,6 +15,8 @@ class MLFlowManager:
     """
     The MLFlowManager class is a high-level interface for managing MLflow experiments, runs, logging, and artifacts.
     """
+    test_data_filename = "test_data.csv"
+    run_name_with_original_data = "Original data models"
 
 
     def __init__(self, experiment_name: str):
@@ -27,8 +29,6 @@ class MLFlowManager:
             The name of the MLflow experiment.
 
         """
-        self.test_data_filename = "test_data.csv"
-        self.run_name_with_test_data = "Original data models"
 
         self.experiment_name = experiment_name
         self.mlflow_client = MlflowClient()
@@ -42,31 +42,42 @@ class MLFlowManager:
         else:
             self.experiment_id = self.mlflow_client.create_experiment(
                 self.experiment_name,
-                artifact_location=Path.cwd().joinpath("../logs/mlruns").as_uri(),
             )
 
-    def start_run(self, run_name: str, tags: Optional[dict] = None, **kwargs):
+    def start_run(self, run_name: str, tags: Optional[dict] = None, nested: Optional[bool] = False, **kwargs):
         """
         Start a new run in the current experiment.
 
         Parameters:
         ------------
-        run_name: Optional[str]
-            The name of the run. Optional.
+        run_name: str
+            The name of the run.
+        tags: Optional[dict]
+            A dictionary of tags to be logged for the run. Optional.
+        nested: Optional[bool]
+            True: the run will be nested under the currently active run. 
+            False: any active run will be ended before starting a new one. Default is False.
+        **kwargs: 
+            Additional keyword arguments passed to `mlflow.start_run()`.
 
         Returns:
         -------
         run: mlflow.entities.Run
             The newly created run.
         """
-        self.run = mlflow.start_run(
-            experiment_id=self.experiment_id, run_name=run_name, **kwargs
-        )
+        active_run = mlflow.active_run()
+
+        if nested is False and active_run is not None:
+            mlflow.end_run()
+
+        self.run = mlflow.start_run(experiment_id=self.experiment_id, run_name=run_name, nested=nested, **kwargs)
         self.log_tag("Run ID", self.run.info.run_id)
+
         if tags:
             self.log_tags(tags)
 
         return self.run
+
 
     def log_params(self, params: dict):
         """
@@ -324,7 +335,7 @@ class MLFlowManager:
         ValueError:
             If test-holdout data is not found for the given run ID.
         """
-        run_id = self.get_run_id_by_name(self.run_name_with_test_data)
+        run_id = self.get_run_id_by_name(self.run_name_with_original_data)
         run = mlflow.get_run(run_id)
         file_path = f"{run.info.artifact_uri}/{self.test_data_filename}"
 
