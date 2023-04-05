@@ -93,26 +93,28 @@ ctgan_param:
 
 
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
-        Q1:
-          epochs: 10
-          batch_size: 6
-          pac: 2
-          verbose: True #required (for capturing loss values)
-        Q2:
-          epochs: 300
-          batch_size: 50
-          pac: 10
-          verbose: True #required (for capturing loss values)
+        #Q1:
+        #  epochs: 10
+        #  batch_size: 6
+        #  pac: 2
+        #  verbose: True #required (for capturing loss values)
+        #Q2:
+        #  epochs: 300
+        #  batch_size: 50
+        #  pac: 10
+        #  verbose: True #required (for capturing loss values)
         Q3:
-          epochs: 500
-          batch_size: 100
-          pac: 20
-          verbose: True #required (for capturing loss values)
-        Q4:
           epochs: 1500
-          batch_size: 300
-          pac: 20
+          batch_size: 100
+          pac: 5
           verbose: True #required (for capturing loss values)
+          generator_lr: 0.00005
+          discriminator_lr: 0.00005
+        #Q4:
+        #  epochs: 1500
+        #  batch_size: 300
+        #  pac: 20
+        #  verbose: True #required (for capturing loss values)
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
