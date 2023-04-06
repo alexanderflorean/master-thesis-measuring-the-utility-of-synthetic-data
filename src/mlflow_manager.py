@@ -79,6 +79,7 @@ class MLFlowManager:
         return self.run
 
 
+    ### Logging methods
     def log_params(self, params: dict):
         """
         Log a set of parameters as key-value pairs.
@@ -271,13 +272,7 @@ class MLFlowManager:
         self.log_artifact(temp_file_name, artifact_path)
         os.remove(temp_file_name)
 
-
-    def end_run(self):
-        """
-        End the current run.
-        """
-        mlflow.end_run()
-
+    ### Get methods
     def load_run_by_name(self, run_name: str):
         """
         Load a run by its name.
@@ -367,3 +362,81 @@ class MLFlowManager:
             return runs[0].info.run_id
         else:
             return None
+
+    def get_best_run_by_metric(self, metric_name: str = "Accuracy"):
+        """
+        Get the run with the highest specified metric from the active experiment.
+
+        Parameters:
+        ------------
+        metric_name: str
+            The name of the metric to sort the runs by. Default is "Accuracy".
+
+        Returns:
+        -------
+        best_run: mlflow.entities.Run
+            The run with the highest specified metric.
+        """
+        runs = self.mlflow_client.search_runs(
+            experiment_ids=[self.experiment_id],
+            order_by=[f"metric.{metric_name} DESC"]
+        )
+
+        if runs:
+            best_run = runs[0]
+            return best_run
+        else:
+            print(f"No runs found for the experiment '{self.experiment_name}'")
+            return None
+
+    def get_run_name(self, run: mlflow.entities.Run) -> Optional[str]:
+        """
+        Get the run name from a mlflow.entities.Run object.
+
+        Parameters:
+        ------------
+        run: mlflow.entities.Run
+            The run object.
+
+        Returns:
+        -------
+        run_name: Optional[str]
+            The name of the run or None if the name is not found.
+        """
+        run_name_key = 'mlflow.runName'
+        if run_name_key in run.data.tags:
+            return run.data.tags[run_name_key]
+        else:
+            return None
+
+    def get_model_tag(self, run: mlflow.entities.Run) -> str:
+        """
+        Get the value of the 'model' tag for a specific run.
+
+        Parameters:
+        ------------
+        run: mlflow.entities.Run
+            The run object.
+
+        Returns:
+        -------
+        model_tag: str
+            The value of the 'model' tag, i.g. 'lr' for logistic regression.
+
+        Raises:
+        ------
+        ValueError:
+            If the 'model' tag is not found for the given run.
+        """
+        if "model" in run.data.tags:
+            return run.data.tags["model"]
+        else:
+            raise ValueError(f"The 'model' tag is not found for the run ID '{run.info.run_id}'")
+
+
+    def end_run(self):
+        """
+        End the current run.
+        """
+        mlflow.end_run()
+
