@@ -2,7 +2,10 @@ import pandas as pd
 import numpy as np
 import pytest
 
-from src.utils import get_categorical_indices, unravel_metric_report, extract_loss_info_from_stdout
+from src.utils import (get_categorical_indices, 
+                       unravel_metric_report, 
+                       extract_loss_info_from_stdout,
+                       convert_and_clean_dict)
 
 
 def test_get_categorical_indices():
@@ -114,3 +117,44 @@ def test_extract_loss_info_from_stdout(input_str):
     # Compare the dictionaries using numpy and assert_allclose
     for key in expected_dict.keys():
         assert np.allclose(result_dict[key].values, expected_dict[key].values)
+
+def test_clean_and_convert_dict():
+
+    # Test with the given example
+    input_dict = {
+        'C': '2.506',
+        'class_weight': '{}',
+        'dual': 'False',
+        'fit_intercept': 'True',
+        'intercept_scaling': '1',
+        'l1_ratio': 'None',
+        'max_iter': '1000',
+        'multi_class': 'auto',
+        'n_jobs': 'None',
+        'penalty': 'l2',
+        'random_state': '202',
+        'solver': 'lbfgs',
+        'tol': '0.0001',
+        'verbose': '0',
+        'warm_start': 'False',
+    }
+    expected = {
+        'C': 2.506,
+        'dual': False,
+        'fit_intercept': True,
+        'intercept_scaling': 1,
+        'l1_ratio': None,
+        'max_iter': 1000,
+        'multi_class': 'auto',
+        'n_jobs': None,
+        'penalty': 'l2',
+        'random_state': 202,
+        'solver': 'lbfgs',
+        'tol': 0.0001,
+        'verbose': 0,
+        'warm_start': False,
+    }
+
+    output = convert_and_clean_dict(input_dict)
+
+    assert expected == output, f"The ouput is not equal to the expected values, \nExpected:\n{expected}\nOutput:\n{output}"

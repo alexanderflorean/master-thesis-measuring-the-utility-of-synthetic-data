@@ -240,3 +240,37 @@ def get_synthetic_filepaths_from_original_data_id(original_data_id):
     files_filtered = [filename for filename in synthetic_data_files if original_data_id in filename]
 
     return files_filtered
+
+def convert_and_clean_dict(dictionary:dict) -> dict:
+    # Helper function to convert string values to their appropriate data types
+    def convert(value):
+        # If the value is an integer, convert it to int
+        if value.isdigit():
+            return int(value)
+        # If the value is a float, try converting it to float
+        try:
+            return float(value)
+        except ValueError:
+            pass
+        # Convert string 'True' and 'False' to boolean True and False
+        if value.lower() == "true":
+            return True
+        if value.lower() == "false":
+            return False
+        # Convert string 'None' to None
+        if value.lower() == "none":
+            return None
+        # Return value unchanged if it cannot be converted to any other data type
+        return value
+
+    # Create an empty dictionary to store cleaned key-value pairs
+    cleaned_dict = {}
+
+    # Iterate over each key-value pair in the input dictionary
+    for key, value in dictionary.items():
+        # If the value is not empty, convert it and add the key-value pair to the cleaned_dict
+        if value.strip() != "" and value.strip() != '{}':
+            cleaned_dict[key] = convert(value)
+
+    # Return the cleaned dictionary with values converted to their appropriate data types
+    return cleaned_dict

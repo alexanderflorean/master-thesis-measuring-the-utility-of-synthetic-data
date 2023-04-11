@@ -8,6 +8,7 @@ folders:
     log_dir:       "../logs/"              # for logging data for each specific dataset
 
     data_dir:      "../data/"              # datasets
+    raw_dir:      "../data/raw/"              # datasets
     sd_dir:        "../data/synthetic/"       # synthetic dataset
     real_dir:      "../data/real/"            # the original datasets, real data
     train_dir:     "../data/train/"           # train data for models built on original data
@@ -23,8 +24,8 @@ clf:    # Settings for classification modelling
     # choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
     ml_models: ['lr',         # Logistic Regression
                 'knn',        # K-Nearest Neighbor
-                'nb',         # Naive Bayes
-                'svm',        # Support Vector Machines
+                #'nb',         # Naive Bayes
+                #'svm',        # Support Vector Machines
                 #'rbfsvm',     # SVM - radial basis function kernel
                 #'gpc',        # Gaussian Process Classifier
                 # 'mlp',      # Multilayer Perceptron  TODO: fix  some error exceeding optimization ...
@@ -93,30 +94,34 @@ ctgan_param:
 
 
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
-        #Q1:
-        #  epochs: 10
-        #  batch_size: 6
-        #  pac: 2
-        #  verbose: True #required (for capturing loss values)
+        Q1:
+          epochs: 10
+          batch_size: 6
+          pac: 2
+          generator_lr: 0.05000
+          discriminator_lr: 0.05000
+          verbose: True #required (for capturing loss values)
         #Q2:
         #  epochs: 300
         #  batch_size: 50
         #  pac: 10
+        #  generator_lr: 0.00200
+        #  discriminator_lr: 0.00200
         #  verbose: True #required (for capturing loss values)
         #Q3:
         #  epochs: 1500
         #  batch_size: 100
         #  pac: 5
         #  verbose: True #required (for capturing loss values)
+        #  generator_lr: 0.00015
+        #  discriminator_lr: 0.00015
+        #Q4:
+        #  epochs: 3000
+        #  batch_size: 1000
+        #  pac: 5
+        #  verbose: True #required (for capturing loss values)
         #  generator_lr: 0.00005
         #  discriminator_lr: 0.00005
-        Q4:
-          epochs: 2500
-          batch_size: 1000
-          pac: 5
-          verbose: True #required (for capturing loss values)
-          generator_lr: 0.00005
-          discriminator_lr: 0.00005
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   

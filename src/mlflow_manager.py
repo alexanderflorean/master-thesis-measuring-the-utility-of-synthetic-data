@@ -67,8 +67,9 @@ class MLFlowManager:
         """
         active_run = mlflow.active_run()
 
-        if nested is False and active_run is not None:
+        while(nested == False and active_run != None):
             mlflow.end_run()
+            active_run = mlflow.active_run()
 
         self.run = mlflow.start_run(experiment_id=self.experiment_id, run_name=run_name, nested=nested, **kwargs)
         self.log_tag("Run ID", self.run.info.run_id)
@@ -341,6 +342,34 @@ class MLFlowManager:
                 f"Test-holdout data not found for run ID '{run_id}' at '{file_path}'"
             )
 
+    def get_best_model_hyperparameters(self, run_name: Optional[str]=None) -> dict:
+        """
+        Get the model with its hyperparameters
+
+        Returns:
+        -------
+        best_model: dict
+                params: the hyperparameters for the model
+                model: the algorithm name
+
+        Raise:
+        ------
+        ValueError:
+            If test-holdout data is not found for the given run ID.
+        """
+        if run_name is None:
+            run_id = self.get_run_id_by_name(self.run_name_with_original_data)
+        else:
+            run_id = self.get_run_id_by_name(run_name)
+
+        run = self.get_run_by_id(run_id)
+        best_model = {
+            'params': run.data.params,
+            'model': run.data.tags['model'],
+        }
+        return best_model
+
+
     def get_run_id_by_name(self, run_name: str) -> Optional[str]:
         """
         Get a run ID by its name.
@@ -363,7 +392,7 @@ class MLFlowManager:
         else:
             return None
 
-    def get_best_run_by_metric(self, metric_name: str = "Accuracy"):
+    def get_best_run_by_metric(self, metric_name: str = "Accuracy", run_name: Optional[str] = None):
         """
         Get the run with the highest specified metric from the active experiment.
 
@@ -371,14 +400,22 @@ class MLFlowManager:
         ------------
         metric_name: str
             The name of the metric to sort the runs by. Default is "Accuracy".
+        run_name: Optional[str]
+            The name of the runs to be considered. Optional.
 
         Returns:
         -------
         best_run: mlflow.entities.Run
             The run with the highest specified metric.
         """
+        if run_name is not None:
+            filter_string = f"tag.mlflow.runName='{run_name}'"
+        else:
+            filter_string = ""
+
         runs = self.mlflow_client.search_runs(
             experiment_ids=[self.experiment_id],
+            filter_string=filter_string,
             order_by=[f"metric.{metric_name} DESC"]
         )
 
@@ -386,7 +423,7 @@ class MLFlowManager:
             best_run = runs[0]
             return best_run
         else:
-            print(f"No runs found for the experiment '{self.experiment_name}'")
+            print(f"No runs found for the experiment '{self.experiment_name}' with run_name '{run_name}'")
             return None
 
     def get_run_name(self, run: mlflow.entities.Run) -> Optional[str]:
@@ -409,7 +446,7 @@ class MLFlowManager:
         else:
             return None
 
-    def get_model_tag(self, run: mlflow.entities.Run) -> str:
+    def get_model_tag(self, run: mlflow.entities.run) -> str:
         """
         Get the value of the 'model' tag for a specific run.
 
