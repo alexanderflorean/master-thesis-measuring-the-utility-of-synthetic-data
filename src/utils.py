@@ -1,3 +1,5 @@
+""" This python script contains multiple helper functions that are used throughout the experiment.  """
+
 import os
 import re
 import time
