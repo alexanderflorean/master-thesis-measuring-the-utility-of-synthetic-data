@@ -22,20 +22,22 @@ folders:
 
 clf:    # Settings for classification modelling
     # choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
-    ml_models: ['lr',         # Logistic Regression
-                'knn',        # K-Nearest Neighbor
-                'nb',         # Naive Bayes
+    ml_models: [
+                #'lr',         # Logistic Regression
+                #'knn',        # K-Nearest Neighbor
+                #'nb',         # Naive Bayes
                 'svm',        # Support Vector Machines
                 'rbfsvm',     # SVM - radial basis function kernel
-                #'gpc',        # Gaussian Process Classifier
-                 'mlp',      # Multilayer Perceptron  TODO: fix  some error exceeding optimization ...
-                # 'ridge',    # Ridge Classifier TODO: some error shows up when ridge gets choosen
+                'mlp',        # Multilayer Perceptron  TODO: fix  some error exceeding optimization ...
                 'rf',         # Random Forest
+                'gbc',        # Gradient Boosting Classifier
+                ### Not implmented Tuning_Grids ###
+                # 'ridge',    # Ridge Classifier TODO: some error shows up when ridge gets choosen
+                #'gpc',        # Gaussian Process Classifier
                 #'dt',         # Decision Tree Classifier
                 #'et',         # Extra Trees Classifier
                 #'qda',        # Quadratic Discriminant Analysis
                 #'ada',        # Ada Boost Clasifier
-                'gbc',        # Gradient Boosting Classifier
                 #'lda',        # Linear Dicriminant Analysis
                 #'xgboost',    # Extreme Gradient Boosting
                 #'lightgbm'    #Light Gradient Boosting Machine
@@ -106,27 +108,27 @@ ctgan_param:
           generator_lr: 0.05000
           discriminator_lr: 0.05000
           verbose: True #required (for capturing loss values)
-        Q2:
-          epochs: 300
-          batch_size: 50
-          pac: 10
-          generator_lr: 0.00200
-          discriminator_lr: 0.00200
-          verbose: True #required (for capturing loss values)
-        Q3:
-          epochs: 1500
-          batch_size: 100
-          pac: 5
-          verbose: True #required (for capturing loss values)
-          generator_lr: 0.00015
-          discriminator_lr: 0.00015
-        Q4:
-          epochs: 3000
-          batch_size: 1000
-          pac: 5
-          verbose: True #required (for capturing loss values)
-          generator_lr: 0.00005
-          discriminator_lr: 0.00005
+        #Q2:
+        #  epochs: 300
+        #  batch_size: 50
+        #  pac: 10
+        #  generator_lr: 0.00200
+        #  discriminator_lr: 0.00200
+        #  verbose: True #required (for capturing loss values)
+        #Q3:
+        #  epochs: 1500
+        #  batch_size: 100
+        #  pac: 5
+        #  verbose: True #required (for capturing loss values)
+        #  generator_lr: 0.00015
+        #  discriminator_lr: 0.00015
+        #Q4:
+        #  epochs: 3000
+        #  batch_size: 1000
+        #  pac: 5
+        #  verbose: True #required (for capturing loss values)
+        #  generator_lr: 0.00005
+        #  discriminator_lr: 0.00005
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
