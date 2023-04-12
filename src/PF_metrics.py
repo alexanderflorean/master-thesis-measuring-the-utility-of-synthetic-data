@@ -536,6 +536,7 @@ def compute_all_pf_measures(
     measures = {}
 
     measures["DatasetName"] = SD_id
+    measures["SDG"] = SD_id.split('_')[0]
 
     result = pmse(original_data=original_data, synthetic_data=synthetic_data)
     measures["pMSE"] = result["score"]

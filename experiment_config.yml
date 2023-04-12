@@ -23,9 +23,9 @@ folders:
 clf:    # Settings for classification modelling
     # choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
     ml_models: [
-                #'lr',         # Logistic Regression
-                #'knn',        # K-Nearest Neighbor
-                #'nb',         # Naive Bayes
+                'lr',         # Logistic Regression
+                'knn',        # K-Nearest Neighbor
+                'nb',         # Naive Bayes
                 'svm',        # Support Vector Machines
                 'rbfsvm',     # SVM - radial basis function kernel
                 'mlp',        # Multilayer Perceptron  TODO: fix  some error exceeding optimization ...
@@ -108,29 +108,38 @@ ctgan_param:
           generator_lr: 0.05000
           discriminator_lr: 0.05000
           verbose: True #required (for capturing loss values)
-        #Q2:
-        #  epochs: 300
-        #  batch_size: 50
-        #  pac: 10
-        #  generator_lr: 0.00200
-        #  discriminator_lr: 0.00200
-        #  verbose: True #required (for capturing loss values)
-        #Q3:
-        #  epochs: 1500
-        #  batch_size: 100
-        #  pac: 5
-        #  verbose: True #required (for capturing loss values)
-        #  generator_lr: 0.00015
-        #  discriminator_lr: 0.00015
-        #Q4:
-        #  epochs: 3000
-        #  batch_size: 1000
-        #  pac: 5
-        #  verbose: True #required (for capturing loss values)
-        #  generator_lr: 0.00005
-        #  discriminator_lr: 0.00005
+        Q2:
+          epochs: 300
+          batch_size: 50
+          pac: 10
+          generator_lr: 0.00200
+          discriminator_lr: 0.00200
+          verbose: True #required (for capturing loss values)
+        Q3:
+          epochs: 1500
+          batch_size: 100
+          pac: 5
+          verbose: True #required (for capturing loss values)
+          generator_lr: 0.00015
+          discriminator_lr: 0.00015
+        Q4:
+          epochs: 3000
+          batch_size: 1000
+          pac: 5
+          verbose: True #required (for capturing loss values)
+          generator_lr: 0.00005
+          discriminator_lr: 0.00005
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
     num_sd: 10  # how many copies of SDG and synthetic datasets to create for each setting 
+
+# Specifiy which datasets to run the experiment on, 
+#   if None (in yaml it is null), run all
+#   if ['dataset id1', 'dataset id2'] , runs experiment on all datasets with the specified id
+#   in yaml, list is done:
+#                       - item1
+#                       - item2
+#                       - item3
+run_dataset: null
 ...
