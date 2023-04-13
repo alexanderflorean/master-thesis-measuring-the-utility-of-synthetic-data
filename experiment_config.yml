@@ -51,7 +51,7 @@ clf:    # Settings for classification modelling
         search_library: 'scikit-optimize'
         search_algorithm: 'bayesian'
         early_stopping: 'Median'  # median stopping rule
-        early_stopping_max_iters: 5 
+        early_stopping_max_iters: 100 
 
 
 # CTGAN hyperparameters
