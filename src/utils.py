@@ -249,6 +249,9 @@ def convert_and_clean_dict(dictionary:dict) -> dict:
         # If the value is an integer, convert it to int
         if value.isdigit():
             return int(value)
+        # if the value is a negative integer
+        if isinstance(value, str) and value.lstrip('-').isdigit():
+            return int(value)
         # If the value is a float, try converting it to float
         try:
             return float(value)

@@ -15,8 +15,6 @@ class MLFlowManager:
     """
     The MLFlowManager class is a high-level interface for managing MLflow experiments, runs, logging, and artifacts.
     """
-    test_data_filename = "test_data.csv"
-    run_name_with_original_data = "Original data models"
 
 
     def __init__(self, experiment_name: str):
@@ -29,6 +27,8 @@ class MLFlowManager:
             The name of the MLflow experiment.
 
         """
+        self.test_data_filename = "test_data.csv"
+        self.run_name_with_original_data = "Original data models"
 
         self.experiment_name = experiment_name
         self.mlflow_client = MlflowClient()
