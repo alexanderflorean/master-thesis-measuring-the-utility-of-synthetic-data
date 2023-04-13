@@ -11,8 +11,8 @@ class Grids:
             return Grids.k_nearest_neighbor_grid()
         elif model_name == 'nb':
             return Grids.naive_bayes_grid()
-        elif model_name == 'svm':
-            return Grids.support_vector_machines_grid()
+        #elif model_name == 'svm': ###For some reason, pycaret returns StochasticGradientDecentClassifier
+        #    return Grids.support_vector_machines_grid()
         elif model_name == 'rbfsvm':
             return Grids.svm_rbf_kernel_grid()
         elif model_name == 'mlp':
@@ -22,7 +22,7 @@ class Grids:
         elif model_name == 'rf':
             return Grids.random_forest_grid()
         else:
-            raise ValueError(f"Unknown model name '{model_name}'. Available options: 'lr', 'knn', 'nb', 'svm', 'rbfsvm', 'mlp', 'gbc', 'rf'")
+            raise ValueError(f"Unknown model name '{model_name}'. Available options: 'lr', 'knn', 'nb', 'svm', 'mlp', 'gbc', 'rf'")
 
     @staticmethod
     def logistic_regression_grid():
@@ -50,7 +50,7 @@ class Grids:
     def support_vector_machines_grid():
         return {
             'C': np.logspace(-4, 4, 20).tolist(),
-            'kernel': ['linear', 'poly', 'sigmoid'],
+            'kernel': ['linear', 'poly', 'sigmoid', 'rbf'],
             'degree': [2, 3, 4, 5],
             'coef0': [0.0, 0.1, 0.5, 1.0],
             'shrinking': [True, False]
@@ -60,17 +60,39 @@ class Grids:
     def svm_rbf_kernel_grid():
         return {
             'C': np.logspace(-4, 4, 20).tolist(),
-            'gamma': ['scale', 'auto', 0.1, 1, 10],
+            'kernel': ['linear', 'poly', 'sigmoid', 'rbf'],
+            'degree': [2, 3, 4, 5],
+            'coef0': [0.0, 0.1, 0.5, 1.0],
             'shrinking': [True, False]
         }
 
     @staticmethod
     def multilayer_perceptron_grid():
         return {
-            'hidden_layer_sizes': [(50,), (100,), (50, 50), (100, 100)],
+            'hidden_layer_size_0': (50,), 
+            'hidden_layer_size_1': (100,), 
+            'hidden_layer_size_2': (250,), 
+            'hidden_layer_size_3': (500,),
             'activation': ['relu', 'tanh', 'logistic'],
             'solver': ['adam', 'sgd'],
-            'alpha': [0.0001, 0.001, 0.01],
+            'alpha': [
+                0.0000001,
+                0.000001,
+                0.0001,
+                0.001,
+                0.01,
+                0.0005,
+                0.005,
+                0.05,
+                0.1,
+                0.15,
+                0.2,
+                0.3,
+                0.4,
+                0.5,
+                0.7,
+                0.9,
+                1 ],
             'learning_rate': ['constant', 'invscaling', 'adaptive'],
         }
 
@@ -89,7 +111,6 @@ class Grids:
     @staticmethod
     def random_forest_grid():
         return {
-            #'n_estimators': [10, 50, 100, 200],
             'criterion': ['gini', 'entropy'],
             'max_depth': [None, 10, 20, 30],
             'min_samples_split': [2, 5, 10],
