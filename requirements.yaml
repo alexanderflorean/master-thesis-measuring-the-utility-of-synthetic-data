@@ -203,6 +203,7 @@ dependencies:
     - ansi2html==1.9.0rc1
     - arrow==1.2.3
     - async-timeout==4.0.2
+    - atomicwrites==1.4.1
     - autopep8==2.0.1
     - autoviz==0.1.58
     - black==23.3.0
@@ -263,6 +264,7 @@ dependencies:
     - jupyter-server==2.2.1
     - jupyter-server-terminals==0.4.4
     - jupyterlab-widgets==3.0.5
+    - jupyternotify==0.1.15
     - kaleido==0.2.1
     - kmodes==0.12.2
     - lightgbm==3.3.5
@@ -278,6 +280,7 @@ dependencies:
     - mdit-py-plugins==0.3.3
     - mdurl==0.1.2
     - mlflow==1.30.0
+    - more-itertools==9.1.0
     - msgpack==1.0.5
     - multidict==6.0.4
     - multimethod==1.9.1
@@ -296,11 +299,12 @@ dependencies:
     - patsy==0.5.3
     - phik==0.12.3
     - plotly-resampler==0.8.4rc1
-    - pluggy==1.0.0
+    - pluggy==0.13.1
     - pmdarima==2.0.2
     - pomegranate==0.14.8
     - prometheus-flask-exporter==0.21.0
-    - protobuf==3.20.3
+    - protobuf==4.21.12
+    - py==1.11.0
     - pyamg==4.2.3
     - pycaret==3.0.0
     - pycodestyle==2.10.0
@@ -311,7 +315,7 @@ dependencies:
     - pyjwt==2.6.0
     - pyod==1.0.8
     - pyrsistent==0.19.3
-    - pytest==7.2.2
+    - pytest==4.6.11
     - python-json-logger==2.0.4
     - python-multipart==0.0.5
     - pyviz-comms==2.2.1
