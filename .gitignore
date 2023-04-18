@@ -1,6 +1,10 @@
 #experiment specific
 data/raw/*
 !data/raw/.gitkeep
+data/metadata/*
+!data/metadata/.gitkeep
+data/result/*
+!data/result/.gitkeep
 data/real/*
 !data/real/.gitkeep
 data/synthetic/*
@@ -15,6 +19,8 @@ pickles/models/*
 !pickles/models/.gitkeep
 notebooks/mlruns
 mlruns/*
+Miniconda*
+.tmp*
 #mlflow
 .trash
 

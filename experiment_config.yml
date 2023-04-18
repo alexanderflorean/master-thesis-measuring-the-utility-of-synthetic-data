@@ -8,6 +8,8 @@ folders:
     log_dir:       "../logs/"              # for logging data for each specific dataset
 
     data_dir:      "../data/"              # datasets
+    meta_dir:      "../data/metadata/"     
+    result_dir:    "../data/result/"     
     raw_dir:       "../data/raw/"             # datasets
     sd_dir:        "../data/synthetic/"       # synthetic dataset
     real_dir:      "../data/real/"            # the original datasets, real data
@@ -44,7 +46,7 @@ clf:    # Settings for classification modelling
                 #'lightgbm'    #Light Gradient Boosting Machine
                 ]   
     # The default tuning grids of pycaret can be found in https://github.com/pycaret/pycaret/blob/master/pycaret/containers/models/classification.py
-    tuning_param:  # TODO: further include more relevant parameters
+    tuning_param:  
         #n_iter: 100             # (do not use when early_stopping is used) Number of iterations to run the tune_model, i.e. n_iter paramter
         optimize: 'F1'   # The target metric to optimize against
         choose_better: True
@@ -104,36 +106,36 @@ ctgan_param:
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
         Q1:
           epochs: 10
-          batch_size: 6
+          batch_size: 10 
           pac: 10
           discriminator_steps: 20
           generator_lr: 0.05000
           discriminator_lr: 0.05000
           verbose: True #required (for capturing loss values)
-        Q2:
-          epochs: 300
-          batch_size: 500
-          pac: 10
-          discriminator_steps: 15 
-          generator_lr: 0.00200
-          discriminator_lr: 0.00200
-          verbose: True #required (for capturing loss values)
-        Q3:
-          epochs: 1500
-          batch_size: 250
-          pac: 10
-          verbose: True #required (for capturing loss values)
-          discriminator_steps: 10
-          generator_lr: 0.00015
-          discriminator_lr: 0.00015
-        Q4:
-          epochs: 3000
-          batch_size: 120
-          pac: 10
-          verbose: True #required (for capturing loss values)
-          discriminator_steps: 5
-          generator_lr: 0.00002
-          discriminator_lr: 0.00002
+        #Q2:
+        #  epochs: 300
+        #  batch_size: 500
+        #  pac: 10
+        #  discriminator_steps: 15 
+        #  generator_lr: 0.00200
+        #  discriminator_lr: 0.00200
+        #  verbose: True #required (for capturing loss values)
+        #Q3:
+        #  epochs: 1500
+        #  batch_size: 250
+        #  pac: 10
+        #  verbose: True #required (for capturing loss values)
+        #  discriminator_steps: 10
+        #  generator_lr: 0.00015
+        #  discriminator_lr: 0.00015
+        #Q4:
+        #  epochs: 3000
+        #  batch_size: 120
+        #  pac: 10
+        #  verbose: True #required (for capturing loss values)
+        #  discriminator_steps: 5
+        #  generator_lr: 0.00002
+        #  discriminator_lr: 0.00002
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
