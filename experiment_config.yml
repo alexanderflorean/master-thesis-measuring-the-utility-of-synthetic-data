@@ -27,12 +27,13 @@ clf:    # Settings for classification modelling
     # choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
     ml_models: [
                 'lr',         # Logistic Regression
-                'knn',        # K-Nearest Neighbor
-                'nb',         # Naive Bayes
-                'rbfsvm',     # SVM - radial basis function kernel
-                'mlp',        # Multilayer Perceptron
-                'rf',         # Random Forest
-                'gbc',        # Gradient Boosting Classifier
+                #'knn',        # K-Nearest Neighbor
+                #'nb',         # Naive Bayes
+                #'rbfsvm',     # SVM - radial basis function kernel
+                #'rf',         # Random Forest
+                #'gbc',        # Gradient Boosting Classifier
+                #'mlp',        # Multilayer Perceptron
+
                 #'svm',        #NOTICE: PYCARET BUGG, do not use, said to be Support Vector Machines but returns SDGClassifier model
                 ### Not implmented Tuning_Grids ###
                 # 'ridge',    # Ridge Classifier TODO: some error shows up when ridge gets choosen

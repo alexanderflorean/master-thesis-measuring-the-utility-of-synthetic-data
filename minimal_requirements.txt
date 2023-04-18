@@ -1,8 +1,8 @@
 pycaret==3.0.0
-pandas-profiling
+pandas-profiling==3.6.6
 sdv==1.0.0
 sdmetrics==0.9.3
-seaborn
+seaborn==0.12.2
 mlflow
 scikit-optimize==0.9.0
 autopep8

@@ -342,6 +342,39 @@ class MLFlowManager:
                 f"Test-holdout data not found for run ID '{run_id}' at '{file_path}'"
             )
 
+    def get_best_run_by_metric(self, metric_name: str = "Accuracy"):
+        """
+        Get the run with the highest specified metric from the active experiment.
+
+        Parameters:
+        ------------
+        metric_name: str
+            The name of the metric to sort the runs by. Default is "Accuracy".
+        run_name: Optional[str]
+            The name of the run to filter the search. Default is None.
+
+        Returns:
+        -------
+        best_run: mlflow.entities.Run
+            The run with the highest specified metric.
+        """
+        run_name = self.run_name_with_original_data
+
+        query = f"tag.mlflow.runName='{run_name}'" if run_name else None
+        runs = self.mlflow_client.search_runs(
+            experiment_ids=[self.experiment_id],
+            filter_string=query,
+            order_by=[f"metric.{metric_name} DESC"]
+        )
+
+        if runs:
+            best_run = runs[0]
+            return best_run
+        else:
+            print(f"No runs found for the experiment '{self.experiment_name}' with run name '{run_name}'")
+            return None
+
+
     def get_best_model_hyperparameters(self, run_name: Optional[str]=None) -> dict:
         """
         Get the model with its hyperparameters
