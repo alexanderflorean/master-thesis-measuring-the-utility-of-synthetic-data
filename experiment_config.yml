@@ -120,7 +120,7 @@ ctgan_param:
           verbose: True #required (for capturing loss values)
         Q3:
           epochs: 1500
-          batch_size: 100
+          batch_size: 250
           pac: 10
           verbose: True #required (for capturing loss values)
           discriminator_steps: 10
@@ -128,7 +128,7 @@ ctgan_param:
           discriminator_lr: 0.00015
         Q4:
           epochs: 3000
-          batch_size: 100
+          batch_size: 120
           pac: 10
           verbose: True #required (for capturing loss values)
           discriminator_steps: 5
