@@ -27,13 +27,13 @@ clf:    # Settings for classification modelling
     # choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
     ml_models: [
                 'lr',         # Logistic Regression
-                #'knn',        # K-Nearest Neighbor
-                #'nb',         # Naive Bayes
-                #'rbfsvm',     # SVM - radial basis function kernel
-                #'rf',         # Random Forest
-                #'gbc',        # Gradient Boosting Classifier
-                #'mlp',        # Multilayer Perceptron
+                'knn',        # K-Nearest Neighbor
+                'nb',         # Naive Bayes
+                'rbfsvm',     # SVM - radial basis function kernel
+                'rf',         # Random Forest
+                'mlp',        # Multilayer Perceptron
 
+                #'gbc',        # Gradient Boosting Classifier
                 #'svm',        #NOTICE: PYCARET BUGG, do not use, said to be Support Vector Machines but returns SDGClassifier model
                 ### Not implmented Tuning_Grids ###
                 # 'ridge',    # Ridge Classifier TODO: some error shows up when ridge gets choosen
@@ -54,7 +54,7 @@ clf:    # Settings for classification modelling
         search_library: 'scikit-optimize'
         search_algorithm: 'bayesian'
         early_stopping: 'Median'  # median stopping rule
-        early_stopping_max_iters: 100 
+        early_stopping_max_iters: 300 
 
 
 # CTGAN hyperparameters
@@ -105,38 +105,33 @@ ctgan_param:
 
 
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
-        Q1:
-          epochs: 10
-          batch_size: 10 
+        #Q1:
+        #  epochs: 10
+        #  batch_size: 10
+        #  pac: 10
+        #  discriminator_steps: 1
+        #  generator_lr: 0.05000
+        #  discriminator_lr: 0.05000
+        #  verbose: True #required (for capturing loss values)
+        #  cuda: True 
+        Q2:
+          epochs: 300
+          batch_size: 500
           pac: 10
-          discriminator_steps: 20
-          generator_lr: 0.05000
-          discriminator_lr: 0.05000
+          discriminator_steps: 5 
+          generator_lr: 0.00200
+          discriminator_lr: 0.00200
           verbose: True #required (for capturing loss values)
-        #Q2:
-        #  epochs: 300
-        #  batch_size: 500
-        #  pac: 10
-        #  discriminator_steps: 15 
-        #  generator_lr: 0.00200
-        #  discriminator_lr: 0.00200
-        #  verbose: True #required (for capturing loss values)
-        #Q3:
-        #  epochs: 1500
-        #  batch_size: 250
-        #  pac: 10
-        #  verbose: True #required (for capturing loss values)
-        #  discriminator_steps: 10
-        #  generator_lr: 0.00015
-        #  discriminator_lr: 0.00015
-        #Q4:
-        #  epochs: 3000
-        #  batch_size: 120
-        #  pac: 10
-        #  verbose: True #required (for capturing loss values)
-        #  discriminator_steps: 5
-        #  generator_lr: 0.00002
-        #  discriminator_lr: 0.00002
+          cuda: True 
+        Q3:
+          epochs: 3000
+          batch_size: 50
+          pac: 10
+          verbose: True #required (for capturing loss values)
+          discriminator_steps: 10 
+          generator_lr: 0.00002
+          discriminator_lr: 0.00002
+          cuda: True 
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
