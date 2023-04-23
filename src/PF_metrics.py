@@ -311,15 +311,15 @@ def cluster_metric(
             combined_data, indices_to_exclude=categorical_columns
         )
         # TODO: remove logg
-        print(
-            f"num samples data: {len(scaled_combined_data)}, num_klusters:{num_clusters}"
-        )
+        # print(
+        #    f"num samples data: {len(scaled_combined_data)}, num_klusters:{num_clusters}"
+        #)
         kproto = KPrototypes(
             n_clusters=num_clusters, init="Cao", random_state=random_state, n_jobs=1
         )
         # Kprottypes expects data with variables as columns, which is why it is transposed
-        print(scaled_combined_data.shape)
-        print(type(scaled_combined_data))
+        #print(scaled_combined_data.shape)
+        #print(type(scaled_combined_data))
         kproto.fit(scaled_combined_data, categorical=categorical_columns)
 
         cluster_labels = (

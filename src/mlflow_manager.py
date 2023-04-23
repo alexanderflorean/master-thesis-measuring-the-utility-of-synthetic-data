@@ -342,14 +342,63 @@ class MLFlowManager:
                 f"Test-holdout data not found for run ID '{run_id}' at '{file_path}'"
             )
 
-    def get_best_run_by_metric(self, metric_name: str = "Accuracy", use_active_run: bool = True):
+    def get_best_nested_run_by_metric(self, parent_run_id: str, metric_name: str = "F1"):
+        """
+        Get the nested run with the highest specified metric from a parent run.
+
+        Parameters:
+        ------------
+        parent_run_id: str
+            The ID of the parent run.
+        metric_name: str
+            The name of the metric to sort the runs by. Default is "F1".
+
+        Returns:
+        -------
+        best_nested_run: mlflow.entities.Run
+            The nested run with the highest specified metric.
+        """
+        query = f"tags.mlflow.parentRunId = '{parent_run_id}'"
+        runs = self.mlflow_client.search_runs(
+            experiment_ids=[self.experiment_id],
+            filter_string=query,
+            order_by=[f"metric.{metric_name} DESC"]
+        )
+
+        if runs:
+            best_nested_run = runs[0]
+            return best_nested_run
+        else:
+            print(f"No nested runs found for the parent run ID '{parent_run_id}'")
+            return None
+
+    def get_active_run_id(self):
+        """
+        Get the run id of the current active run.
+
+        Parameters:
+        -----------
+
+        Returns:
+        run_id: str
+            The run id of the currently active run, if none, return None
+        """
+
+        active_run =  mlflow.active_run()
+
+        if active_run:
+            return active_run.info.run_id
+        else:
+            return None
+
+    def get_best_run_by_metric(self, metric_name: str = "F1", use_active_run: bool = False):
         """
         Get the run with the highest specified metric from the active experiment.
 
         Parameters:
         ------------
         metric_name: str
-            The name of the metric to sort the runs by. Default is "Accuracy".
+            The name of the metric to sort the runs by. Default is "F1".
         run_name: Optional[str]
             The name of the run to filter the search. Default is None.
 
@@ -380,7 +429,9 @@ class MLFlowManager:
 
     def get_best_model_hyperparameters(self, run_name: Optional[str]=None) -> dict:
         """
-        Get the model with its hyperparameters
+        Get the model with its hyperparameters from the model logged
+        under the run_name, by default the run name is 
+        self.run_name_with_original_data
 
         Returns:
         -------
