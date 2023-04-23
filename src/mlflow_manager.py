@@ -342,7 +342,7 @@ class MLFlowManager:
                 f"Test-holdout data not found for run ID '{run_id}' at '{file_path}'"
             )
 
-    def get_best_run_by_metric(self, metric_name: str = "Accuracy"):
+    def get_best_run_by_metric(self, metric_name: str = "Accuracy", use_active_run: bool = True):
         """
         Get the run with the highest specified metric from the active experiment.
 
@@ -358,7 +358,10 @@ class MLFlowManager:
         best_run: mlflow.entities.Run
             The run with the highest specified metric.
         """
-        run_name = self.run_name_with_original_data
+        if use_active_run:
+            run_name = self.run.data.tags['mlflow.runName']
+        else:
+            run_name = self.run_name_with_original_data
 
         query = f"tag.mlflow.runName='{run_name}'" if run_name else None
         runs = self.mlflow_client.search_runs(
