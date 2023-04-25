@@ -48,14 +48,21 @@ def getExperimentConfig() -> dict:
     return config
 
 
-def run_pycaret_setup(data_path: str, setup_param: dict, **kwargs):
+def run_pycaret_setup(data_path: str, setup_param: dict, meta: dict=None):
     """A wrapper function for the experiment to run pycaret setup()
 
     sends the correct params to the pycaret setup() function and
     returns its return value.
     Thus enabling iterative runs of the settings.
     """
-    pycaret_setup = setup(data=pd.read_csv(data_path), **setup_param, **kwargs)
+    cols_dtype = None
+    if meta != None and 'cols_dtype' in meta:
+        cols_dtype = meta['cols_dtype']
+    
+    data=pd.read_csv(data_path, dtype=cols_dtype) 
+
+    pycaret_setup = setup(data=data, **setup_param)
+
     return pycaret_setup
 
 

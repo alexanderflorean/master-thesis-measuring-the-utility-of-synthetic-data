@@ -25,7 +25,7 @@ folders:
     model_perf_filepath: "../data/result/model_performance.csv"
 
 clf:    # Settings for classification modelling
-    cv_folds: 1  #10 # number of folds used in k-fold cross validation
+    cv_folds: 10 # number of folds used in k-fold cross validation
     # choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
     ml_models: [
                 'lr',         # Logistic Regression
@@ -56,7 +56,7 @@ clf:    # Settings for classification modelling
         search_library: 'scikit-optimize'
         search_algorithm: 'bayesian'
         early_stopping: 'Median'  # median stopping rule
-        early_stopping_max_iters: 300  # 300 # Default=10
+        early_stopping_max_iters: 300 #300 # 300 # Default=10
 
 
 # CTGAN hyperparameters
@@ -104,8 +104,6 @@ ctgan_param:
     #        Specify whether or not to clip the data returned by ``reverse_transform`` of
     #        the numerical transformer, ``FloatFormatter``, to the min and max values seen
     #        during ``fit``. Defaults to ``True``.
-
-
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
         Q1:
           epochs: 10
@@ -137,7 +135,7 @@ ctgan_param:
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
-    num_sd: 10  # how many copies of SDG and synthetic datasets to create for each setting 
+    num_sd: 10  # 10 how many copies of SDG and synthetic datasets to create for each setting 
 
 # Specifiy which datasets to run the experiment on, 
 #   if null (in yaml null == None in python), run all
@@ -146,5 +144,9 @@ ctgan_param:
 #                       - item1
 #                       - item2
 #                       - item3
-run_dataset: null
+run_dataset: 
+  #- 'D0'   #DONE Step 2,3,4 # diabetes (~750 samples)
+  #- 'D1'   #DONE Step 2,3,4 # titanic  (~800 samples)
+  #- 'D2'   #DONE Step , # bank     (45 211 samples)
+  - 'D3'   #DONE Step ,  # mnist    (70 000 samples)
 ...

@@ -41,6 +41,9 @@ def compute_propensity(
         original_data: pandas.DataFrame
         synthetic_data: pandas.DataFrame
         classifier: scikit-learn classifier
+        random_state: int, optional, default: None
+            Controls the random state for train_test_split
+
 
     Returns:
         --------
