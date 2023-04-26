@@ -1,10 +1,7 @@
 pycaret==3.0.0
-pandas-profiling==3.6.6
+pycaret[tuners]
 sdv==1.0.0
 sdmetrics==0.9.3
 seaborn==0.12.2
 mlflow==2.3.0
-scikit-optimize==0.9.0
-autopep8
-autoviz==0.1.601
 kmodes==0.12.2

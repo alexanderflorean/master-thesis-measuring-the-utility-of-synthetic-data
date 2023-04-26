@@ -28,22 +28,21 @@ class Grids:
     def logistic_regression_grid():
         return {
             'C': np.logspace(-4, 4, 20).tolist(),
-            'penalty': ['l1', 'l2' ],
-            'solver': [ 'liblinear', 'saga'],
+            'penalty': ['l1', 'l2'],
         }
 
     @staticmethod
     def k_nearest_neighbor_grid():
         return {
             'n_neighbors': list(range(1, 41)),
-            'weights': ['uniform', 'distance'],
+            'weights': ['uniform'],   # 'distance' not supported by cuml
             'metric': ['euclidean', 'manhattan', 'minkowski'],
         }
 
     @staticmethod
     def naive_bayes_grid():
         return {
-            'var_smoothing': np.logspace(-10, 0, 20).tolist()
+            'alpha': np.logspace(-10, 0, 20).tolist(),  # "var_smoothin" for sklearn
         }
 
     @staticmethod
@@ -53,7 +52,7 @@ class Grids:
             'kernel': ['linear', 'poly', 'sigmoid', 'rbf'],
             'degree': [2, 3, 4, 5],
             'coef0': [0.0, 0.1, 0.5, 1.0],
-            'shrinking': [True, False]
+            #'shrinking': [True, False]
         }
 
     @staticmethod
@@ -63,7 +62,7 @@ class Grids:
             'kernel': ['linear', 'poly', 'sigmoid', 'rbf'],
             'degree': [2, 3, 4, 5],
             'coef0': [0.0, 0.1, 0.5, 1.0],
-            'shrinking': [True, False]
+            #'shrinking': [True, False]
         }
 
     @staticmethod
