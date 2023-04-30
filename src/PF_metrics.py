@@ -330,9 +330,7 @@ def cluster_metric(
         )  # returns the labels with same indices as the learned dataset
 
     original_data_count = original_data.shape[0]  # number of samples in original data
-    synthetic_data_count = synthetic_data.shape[
-        0
-    ]  # number of samples in synthetic data
+    synthetic_data_count = synthetic_data.shape[0]  # number of samples in synthetic data
     total_data_count = original_data_count + synthetic_data_count
 
     constant_c = original_data_count / (original_data_count + synthetic_data_count)

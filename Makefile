@@ -29,3 +29,9 @@ install:
 test:
 	@pytest
 
+clean:
+	PowerShell -Command "Remove-Item 'C:\Users\flore\source\repos\master-thesis-vt23\logs\*' -Exclude '.gitkeep' -Recurse -Force -ErrorAction SilentlyContinue"
+	PowerShell -Command "Remove-Item 'C:\Users\flore\source\repos\master-thesis-vt23\notebooks\mlruns\*' -Recurse -Force -ErrorAction SilentlyContinue"
+	PowerShell -Command "Remove-Item 'C:\Users\flore\source\repos\master-thesis-vt23\data\synthetic\*.csv' -Exclude '.gitkeep' -Recurse -Force -ErrorAction SilentlyContinue"
+	PowerShell -Command "Remove-Item 'C:\Users\flore\source\repos\master-thesis-vt23\data\result\model_performance.csv' -Force -ErrorAction SilentlyContinue"
+

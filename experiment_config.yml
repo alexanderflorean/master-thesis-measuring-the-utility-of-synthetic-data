@@ -25,7 +25,7 @@ folders:
     model_perf_filepath: "../data/result/model_performance.csv"
 
 clf:    # Settings for classification modelling
-    cv_folds: 2 # 10 # number of folds used in k-fold cross validation
+    cv_folds: 10 # 10 # number of folds used in k-fold cross validation
     # choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
     ml_models: [
                 'lr',         # Logistic Regression
@@ -33,7 +33,7 @@ clf:    # Settings for classification modelling
                 'rbfsvm',     # SVM - radial basis function kernel
                 'rf',         # Random Forest
                 ### All models above used in experiment
-                #'nb',         # Naive Bayes
+                #'nb',         # Naive Bayes #issue with cuml
                 #'mlp',        # Multilayer Perceptron
                 #'gbc',        # Gradient Boosting Classifier
                 #'svm',        #NOTICE: PYCARET BUGG, do not use, said to be Support Vector Machines but returns SDGClassifier model
@@ -56,7 +56,7 @@ clf:    # Settings for classification modelling
         search_library: 'optuna'
         search_algorithm: 'tpe'
         early_stopping: 'Median'  # median stopping rule
-        early_stopping_max_iters: 1 #100 # Default=10
+        early_stopping_max_iters: 100 #100 # Default=10, maximum of different candidates to try
 
 
 # CTGAN hyperparameters
@@ -106,8 +106,8 @@ ctgan_param:
     #        during ``fit``. Defaults to ``True``.
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
         Q1:
-          epochs: 10
-          batch_size: 10
+          epochs: 3
+          batch_size: 100
           pac: 10
           discriminator_steps: 1
           generator_lr: 0.05000
@@ -125,7 +125,7 @@ ctgan_param:
           cuda: True
         Q3:
           epochs: 3000
-          batch_size: 50
+          batch_size: 1000
           pac: 10
           verbose: True #required (for capturing loss values)
           discriminator_steps: 10 
@@ -145,8 +145,10 @@ ctgan_param:
 #                       - item2
 #                       - item3
 run_dataset: 
-  #- 'D0'   #DONE Step 2,3,4 # diabetes (~750 samples)
-  - 'D1'   #DONE Step 2,3,4 # titanic  (~800 samples)
-  #- 'D2'   #DONE Step , # bank     (45 211 samples)
-  #- 'D3'   #DONE Step ,  # mnist    (70 000 samples)
+  - 'D0'   #works, cpu: Step 2,3,4 # diabetes (~750 samples)
+  - 'D1'   #, cpu: Step 2,3,4 # titanic  (~800 samples)
+  - 'D205'   #Step , # bank     (5% of 45 211 samples = 2260 )
+  - 'D305'   #works Step ,  # mnist    (5% of 70 000 samples = 3500)
+  #- 'D2'   #Step , # bank     (45 211 samples)
+  #- 'D3'   #works Step ,  # mnist    (70 000 samples)
 ...

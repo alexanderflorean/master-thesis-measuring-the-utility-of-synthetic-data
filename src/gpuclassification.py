@@ -40,9 +40,10 @@ class GPUClassifierPipeline:
 
         transformers = []
 
-        # Preprocessing for numeric features
+        # Preprocessing for numeric features, if not random forest
         if numeric_features:
             transformers.append(('num', StandardScaler(), numeric_features))
+
 
         # Preprocessing for categorical features
         if categorical_features:
@@ -64,29 +65,39 @@ class GPUClassifierPipeline:
         self.pipeline.steps[-1] = ('classifier', new_classifier)
 
     def fit(self, X, y):
-        self.lb.fit(y.astype(np.int32).values.ravel())
-        y_transformed = self.lb.transform(y.astype(np.int32)).values.ravel()  # Convert y to int32 and flatten to 1D array
-        
-        self.pipeline.fit(X, y_transformed)
+        #self.lb.fit(y.astype(np.int32).values.ravel())
+        #y_transformed = self.lb.transform(y.astype(np.int32)).values.ravel()  # Convert y to int32 and flatten to 1D array
+        self.pipeline.fit(X, y)
+
+    def fit_transform(self, X, y):
+        #self.lb.fit(y.astype(np.int32).values.ravel())
+        #y_transformed = self.lb.transform(y.astype(np.int32)).values.ravel()  # Convert y to int32 and flatten to 1D array
+        return self.pipeline.fit_transform(X, y)
+
+    def transform(self, X, y):
+        #self.lb.fit(y.astype(np.int32).values.ravel())
+        #y_transformed = self.lb.transform(y.astype(np.int32)).values.ravel()  # Convert y to int32 and flatten to 1D array
+        return self.pipeline.transform(X, y)
 
     def predict(self, X):
-        y_pred_transformed = self.pipeline.predict(X)
-        y_pred = self.lb.inverse_transform(y_pred_transformed)
-        return y_pred
+        #y_pred_transformed = self.pipeline.predict(X)
+        #y_pred = self.lb.inverse_transform(y_pred_transformed)
+        return self.pipeline.predict(X)
+
+    def score(self, X, y):
+        return self.pipeline.score(X, y)
     
     def predict_proba(self, X):
         return self.pipeline.predict_proba(X)
 
-    def get_classifier(self):
-        return self.pipeline.named_steps['classifier']
-    
     def set_params(self, **params):
         self.pipeline.named_steps['classifier'].set_params(**params)
         
     def get_params(self):
         return self.pipeline.named_steps['classifier'].get_params()
 
-
+    def get_classifier(self):
+        return self.pipeline.named_steps['classifier']
 
 
 def GPUModels(classifier_type):
