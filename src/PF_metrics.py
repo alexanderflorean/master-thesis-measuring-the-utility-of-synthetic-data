@@ -67,7 +67,7 @@ def compute_propensity(
 
     # train-test split
     X_train, X_test, y_train, y_test = train_test_split(
-        Z, combined_data["S"], test_size=0.3, random_state=random_state
+        Z, combined_data["S"], train_size=0.8, random_state=random_state
     )
 
     n_o_test = sum(y_test == 0)  # number of original samples in the test data
@@ -142,7 +142,6 @@ def s_pmse(
 
         float: standardized pMSE score
     """
-    # TODO: neeed to double check implementation
 
     # number of predictors of the combined dataset (i.e. target 'S')
     k = original_data.shape[1] 
