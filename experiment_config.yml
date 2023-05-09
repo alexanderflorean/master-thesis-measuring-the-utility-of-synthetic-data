@@ -23,6 +23,7 @@ folders:
     setup_dir:  "../pickles/pycaret_setup/"  # contains the dataset specific pycaret settings for the experiments
 
     model_perf_filepath: "../data/result/model_performance.csv"
+    pf_measures_filepath: "../data/result/pf_measures.csv"
 
 clf:    # Settings for classification modelling
     cv_folds: 10 # number of folds used in k-fold cross validation
@@ -37,7 +38,7 @@ clf:    # Settings for classification modelling
                 #'mlp',        # Multilayer Perceptron
                 #'gbc',        # Gradient Boosting Classifier
                 #'svm',        #NOTICE: PYCARET BUGG, do not use, said to be Support Vector Machines but returns SDGClassifier model
-                ### Not implmented Tuning_Grids ###
+                ### Below: Not-implemented Tuning_Grids ###
                 # 'ridge',    # Ridge Classifier TODO: some error shows up when ridge gets choosen
                 #'gpc',        # Gaussian Process Classifier
                 #'dt',         # Decision Tree Classifier
@@ -105,42 +106,51 @@ ctgan_param:
     #        the numerical transformer, ``FloatFormatter``, to the min and max values seen
     #        during ``fit``. Defaults to ``True``.
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
-        #Q0:
-        #  epochs: 3
-        #  batch_size: 100
-        #  pac: 10
-        #  discriminator_steps: 1
-        #  generator_lr: 0.05000
-        #  discriminator_lr: 0.05000
-        #  verbose: True #required (for capturing loss values)
-        #  cuda: True
-        #Q1: # TODO: to be added or ignore, and remake above to Q1
-        #  epochs: 30
-        #  batch_size: 250
-        #  pac: 10
-        #  discriminator_steps: 2
-        #  generator_lr: 0.00500
-        #  discriminator_lr: 0.00500
-        #  verbose: True #required (for capturing loss values)
-        #  cuda: True
-        #Q2:
-        #  epochs: 300
-        #  batch_size: 500
-        #  pac: 10
-        #  discriminator_steps: 5 
-        #  generator_lr: 0.00200
-        #  discriminator_lr: 0.00200
-        #  verbose: True #required (for capturing loss values)
-        #  cuda: True
-        Q3:
-          epochs: 800
+        Q0:
+          epochs: 3
+          batch_size: 100
+          pac: 10
+          discriminator_steps: 1
+          generator_lr: 0.05000
+          discriminator_lr: 0.05000
+          verbose: True #required (for capturing loss values)
+          cuda: True
+        Q1: # TODO: to be added or ignore, and remake above to Q1
+          epochs: 30
+          batch_size: 250
+          pac: 10
+          discriminator_steps: 2
+          generator_lr: 0.00500
+          discriminator_lr: 0.00500
+          verbose: True #required (for capturing loss values)
+          cuda: True
+        Q2:
+          epochs: 300
           batch_size: 500
           pac: 10
+          discriminator_steps: 5 
+          generator_lr: 0.00200
+          discriminator_lr: 0.00200
           verbose: True #required (for capturing loss values)
-          discriminator_steps: 8 
+          cuda: True
+        Q3: 
+          epochs: 3000
+          batch_size: 1000
+          pac: 10
+          verbose: True #required (for capturing loss values)
+          discriminator_steps: 10 
           generator_lr: 0.00002
           discriminator_lr: 0.00002
           cuda: True
+        #Q31: lower alternative for D305 mnist dataset
+        #  epochs: 1000
+        #  batch_size: 600
+        #  pac: 10
+        #  verbose: True #required (for capturing loss values)
+        #  discriminator_steps: 8
+        #  generator_lr: 0.00002
+        #  discriminator_lr: 0.00002
+        #  cuda: True
 
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   

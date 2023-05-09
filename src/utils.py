@@ -245,8 +245,10 @@ def get_synthetic_filepaths_from_original_data_id(original_data_id):
     # Get the list of synthetic data filenames
     synthetic_data_files = extract_filenames(config['folders']['sd_dir'])
 
+    # rule to match for the dataset id
+    regex_rule = r'SD({})Q\d+_\d+\.csv'.format(original_data_id[1:])
     # Filter the list by the dataset id
-    files_filtered = [filename for filename in synthetic_data_files if original_data_id in filename]
+    files_filtered = [filename for filename in synthetic_data_files if re.match(regex_rule, filename)]
 
     return files_filtered
 

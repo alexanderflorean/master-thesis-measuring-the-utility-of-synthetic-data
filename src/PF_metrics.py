@@ -1,4 +1,5 @@
 from math import sqrt
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
@@ -17,13 +18,48 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from utils import get_categorical_indices, timefunction
+from utils import timefunction
+
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder, MinMaxScaler, Binarizer
+
+def create_preprocessing_pipeline(meta):
+    list_of_columntransformers = []
+
+    # if there is numeric features, use standard scaler
+    if meta['numeric_features'] !=None:
+        numerical_columns = meta['numeric_features'] 
+        numerical_transformer = Pipeline([
+            ('scaler', StandardScaler())
+        ])
+        list_of_columntransformers.append( ('num', numerical_transformer, numerical_columns) )
+
+    # if there is categorical features, use ohe
+    if meta['categorical_features'] !=None:
+        categorical_columns = meta['categorical_features']
+        categorical_transformer = Pipeline([
+            ('onehot', OneHotEncoder(handle_unknown='ignore'))
+        ])
+        list_of_columntransformers.append( ('cat', categorical_transformer, categorical_columns) )
+
+    # if there is ordinal features, use ordinal encoder
+    if meta['ordinal_features'] !=None:
+        for col in meta['ordinal_features'].keys():
+            ordinal_transformer = Pipeline([
+                (f'ordinal_{col}', OrdinalEncoder(categories=[meta['ordinal_features'][col]]))
+            ])
+            list_of_columntransformers.append( (f'ord_{col}', ordinal_transformer, [col] ) )
+
+    preprocessor = ColumnTransformer(list_of_columntransformers)
+    return preprocessor
 
 
 ### Start - pMSE & S_pMSE
 def compute_propensity(
     original_data: pd.DataFrame,
     synthetic_data: pd.DataFrame,
+    dataset_meta: dict,
     classifier=LogisticRegression(),
     random_state=None,
 ) -> dict:
@@ -53,7 +89,6 @@ def compute_propensity(
             'no': number of original data samples in the test data
             'ns': number of synthetic data samples in the test data
     """
-    # TODO: consider standardizing values and encoding the categorical predictors
     original_data = original_data.copy()
     synthetic_data = synthetic_data.copy()
 
@@ -64,20 +99,38 @@ def compute_propensity(
     # Combine original_data and synthetic_data
     combined_data = pd.concat([original_data, synthetic_data], axis=0)
     Z = combined_data.drop(columns="S")  # remove target label
+    # Set as string for preprocessor
+    Z[dataset_meta['target']] = Z[dataset_meta['target']].astype(str)
+    Y = combined_data["S"]  # target label
 
     # train-test split
     X_train, X_test, y_train, y_test = train_test_split(
-        Z, combined_data["S"], train_size=0.8, random_state=random_state
+        Z, Y, train_size=0.8, random_state=random_state
     )
 
     n_o_test = sum(y_test == 0)  # number of original samples in the test data
     n_s_test = sum(y_test == 1)  # number of synthetic samples in the test data
 
+    # set the target label as a categorical feature for the model and preprocessor
+    meta = deepcopy(dataset_meta)
+    if meta['categorical_features'] != None:
+        meta['categorical_features'].append(dataset_meta['target'])
+    else:
+        meta["categorical_features"]= [meta['target']]
+
+    # create and fit the preprocessor to the training data
+    preprocessor = create_preprocessing_pipeline(meta)
+    preprocessor.fit(X_train)
+
+    # Transform the data
+    X_train_transformed = preprocessor.transform(X_train)
+    X_test_transformed = preprocessor.transform(X_test)
+
     # fit Logistic Regression model and compute propensity scores
-    classifier.fit(X=X_train, y=y_train)
+    classifier.fit(X=X_train_transformed, y=y_train)
 
     # Extract probabilities for class 1 (synthetic) on X_test datapoints
-    score = classifier.predict_proba(X_test)[:, 1]
+    score = classifier.predict_proba(X_test_transformed)[:, 1]
 
     return {"score": score, "no": n_o_test, "ns": n_s_test}
 
@@ -86,6 +139,7 @@ def compute_propensity(
 def pmse(
     original_data: pd.DataFrame,
     synthetic_data: pd.DataFrame,
+    dataset_meta: dict,
     classifier=LogisticRegression(),
 ) -> float:
     """
@@ -105,7 +159,7 @@ def pmse(
 
         float: pMSE score
     """
-    prop_dict = compute_propensity(original_data, synthetic_data, classifier)
+    prop_dict = compute_propensity(original_data, synthetic_data, dataset_meta, classifier)
 
     propensity = prop_dict["score"]
 
@@ -123,6 +177,7 @@ def pmse(
 def s_pmse(
     original_data: pd.DataFrame,
     synthetic_data: pd.DataFrame,
+    dataset_meta: dict,
     classifier=LogisticRegression(),
 ) -> float:
     """
@@ -146,7 +201,7 @@ def s_pmse(
     # number of predictors of the combined dataset (i.e. target 'S')
     k = original_data.shape[1] 
 
-    prop_dict = compute_propensity(original_data, synthetic_data, classifier)
+    prop_dict = compute_propensity(original_data, synthetic_data, dataset_meta, classifier)
 
     propensity = prop_dict["score"]
 
@@ -253,7 +308,7 @@ def cluster_metric(
     original_data: pd.DataFrame,
     synthetic_data: pd.DataFrame,
     num_clusters: int,
-    metadata: dict,
+    meta: dict,
     random_state=None,
 ) -> float:
     """
@@ -286,13 +341,17 @@ def cluster_metric(
         [original_data, synthetic_data], axis=0, copy=True, ignore_index=True
     )
 
-    categorical_columns = get_categorical_indices(original_data, metadata)
+    dataset_meta = deepcopy(meta)
 
-    assert (
-        max(categorical_columns) <= combined_data.shape[1]
-    ), f"Categorical index: {max(categorical_columns)} is larger the than number of columns: {combined_data.shape[1]} in the data"
+    # Set target label as categorical feature for preprocessing
+    if dataset_meta["categorical_features"] != None:
+        dataset_meta["categorical_features"].append(dataset_meta['target'])
+    else:
+        dataset_meta["categorical_features"] = [dataset_meta["target"]]
+    #convert target label to string for preprocessing
+    combined_data[dataset_meta['target']] = combined_data[dataset_meta['target']].astype(str)
 
-    if categorical_columns == []:
+    if dataset_meta['categorical_features'] == None and dataset_meta['ordinal_features'] == None:
         # Contains only numerical cols, standardize the combined data
         scaled_combined_data = StandardScaler().fit_transform(combined_data)
         # Cluster the scaled data with sklearn.KMeans()
@@ -301,32 +360,29 @@ def cluster_metric(
         )  # expects shape (n_samples, n_features)
         cluster_labels = kmeans.labels_  # returns the
 
-    elif len(categorical_columns) == combined_data.shape[1]:
+    elif len(dataset_meta['categorical_features']) == combined_data.shape[1]:
         # TODO: use k-modes
         raise NotImplementedError(
             "Case: all columns are categorical, solution: use k-modes, however it is not implmented yet."
         )
 
     else:
-        # Perform clustering on the combined data using KPrototypes, it already encodes categorical attributes
-        scaled_combined_data = standardize_select_columns(
-            combined_data, indices_to_exclude=categorical_columns
-        )
-        # TODO: remove logg
-        # print(
-        #    f"num samples data: {len(scaled_combined_data)}, num_klusters:{num_clusters}"
-        #)
-        kproto = KPrototypes(
-            n_clusters=num_clusters, init="Cao", random_state=random_state, n_jobs=1
-        )
-        # Kprottypes expects data with variables as columns, which is why it is transposed
-        #print(scaled_combined_data.shape)
-        #print(type(scaled_combined_data))
-        kproto.fit(scaled_combined_data, categorical=categorical_columns)
+        # Find the categorical column indices after combination
+        categorical_indices = [
+            i for i, col in enumerate(combined_data.columns) if col in dataset_meta['categorical_features']
+        ]
 
-        cluster_labels = (
-            kproto.labels_
-        )  # returns the labels with same indices as the learned dataset
+        # Initialize KPrototypes with the desired number of clusters
+        kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=random_state, n_jobs=-1)
+
+        # Transform the data
+        preprocessor = create_preprocessing_pipeline(dataset_meta)
+        combined_data_transformed = preprocessor.fit_transform(combined_data)
+        # Fit the KPrototypes model to the transformed training data
+        kproto.fit(combined_data_transformed, categorical=categorical_indices)
+
+        # Assign the cluster labels to the data points
+        cluster_labels = kproto.labels_
 
     original_data_count = original_data.shape[0]  # number of samples in original data
     synthetic_data_count = synthetic_data.shape[0]  # number of samples in synthetic data
@@ -474,7 +530,7 @@ def CSTest_metric(
 ### Start - Cross-Classification measure
 @timefunction
 def CrossClassification_metric(
-    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, metadata: dict
+    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, dataset_metadata, metadata: dict
 ) -> float:
     # get categorical columns,
     # identify if they are binary or multiclass,
@@ -483,15 +539,15 @@ def CrossClassification_metric(
     # multiple times then calculate the average or use random-state seed?
 
     results = []
-    columns = get_columns_from_metadata(metadata)
+    cat_ord_features = dataset_metadata['categorical_features'] if dataset_metadata['categorical_features'] != None else []
+    cat_ord_features.extend( list(dataset_metadata['ordinal_features'].keys()) if dataset_metadata['ordinal_features'] != None else [])
 
-    for col in columns:
-        col_type = get_type_from_column_meta(columns[col])
-        if col_type == "categorical":
+
+    for col in original_data.columns:
+        if col in cat_ord_features:
             target_data = original_data[col]
             uniques = target_data.nunique()
             if uniques == 2:
-                # removes the target label from the training?
                 # Documentation: https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/ml-efficacy-single-table/binary-classification
                 efficacy = BinaryMLPClassifier.compute(
                     test_data=original_data,
@@ -520,40 +576,57 @@ def CrossClassification_metric(
 def compute_all_pf_measures(
     original_data: pd.DataFrame,
     synthetic_data: pd.DataFrame,
-    metadata: dict,
+    dataset_meta: dict,     # custom metadata
+    metadata: dict,         # SDV metadata
     SD_id: str,
 ) -> pd.DataFrame:
-    # get number of clusters, using the combined number of samples in the synthetic & original data,
+
+    # get number of clusters, using the original number of samples in the synthetic & original data,
     # and round it to an integer
-    one_percent = 0.01
-    five_percent = 0.05
-    ten_percent = 0.1
-
-    k_1 = round((original_data.shape[0] + synthetic_data.shape[0]) * one_percent)
-    k_5 = round((original_data.shape[0] + synthetic_data.shape[0]) * five_percent)
-    k_10 = round((original_data.shape[0] + synthetic_data.shape[0]) * ten_percent)
-
+    g_0_5 = round((original_data.shape[0]) * 0.005)
+    g_1= round((original_data.shape[0])    * 0.010)
+    g_1_5= round((original_data.shape[0])  * 0.015)
+    g_2= round((original_data.shape[0])    * 0.020)
+    g_2_5 = round((original_data.shape[0]) * 0.025)
+    g_values = {
+        'G_0.5': g_0_5, 
+        'G_1': g_1, 
+        'G_1.5': g_1_5, 
+        'G_2': g_2,
+        'G_2.5': g_2_5, 
+        }
     measures = {}
 
     measures["DatasetName"] = SD_id
     measures["SDG"] = SD_id.split('_')[0]
 
-    result = pmse(original_data=original_data, synthetic_data=synthetic_data)
+    result = pmse(original_data=original_data, synthetic_data=synthetic_data, dataset_meta=dataset_meta)
     measures["pMSE"] = result["score"]
     measures["pMSE_time"] = result["time"]
 
-    result = s_pmse(original_data=original_data, synthetic_data=synthetic_data)
+    result = s_pmse(original_data=original_data, synthetic_data=synthetic_data, dataset_meta=dataset_meta)
     measures["s_pMSE"] = result["score"]
     measures["s_pMSE_time"] = result["time"]
 
-    result = cluster_metric(
-        original_data=original_data,
-        synthetic_data=synthetic_data,
-        num_clusters=k_1,
-        metadata=metadata,
-    )
-    measures["Cluster_1"] = result["score"]
-    measures["Cluster_1_time"] = result["time"]
+    for g in g_values:
+        #Logg
+        print(f"Cluster group: {g}, with {g_values[g]} clusters")
+        result = cluster_metric(
+            original_data=original_data,
+            synthetic_data=synthetic_data,
+            num_clusters= g_values[g],
+            meta=dataset_meta
+        )
+        measures[f"Cluster_{g}"] = result["score"]
+        measures[f"Cluster_{g}_time"] = result["time"]
+        #logg
+        print(f"Value: {result['score']}, Time: {result['time']}")
+
+    # quickfix for Sdmetrics, it doesnt handle specified dtypes e.g. no 'category', 'UInt8', etc.
+    # Mainly for SDMetrics, HyperTransformer, in SDMetrics/sdmetrics/utils.py
+    # seen in branch: 7754f13
+    o_data = pd.read_csv(f"../data/real/{dataset_meta['filename']}")
+    s_data = pd.read_csv(f"../data/synthetic/{SD_id}.csv")
 
     result = BNLogLikelihood_metric(
         original_data=original_data, synthetic_data=synthetic_data, metadata=metadata
@@ -562,30 +635,31 @@ def compute_all_pf_measures(
     measures["BNLogLikelihood_time"] = result["time"]
 
     result = GMLogLikelihood_metric(
-        original_data=original_data, synthetic_data=synthetic_data, metadata=metadata
+        original_data=o_data, synthetic_data=s_data, metadata=metadata
     )
     measures["GMLogLikelihood"] = result["score"]
     measures["GMLogLikelihood_time"] = result["time"]
 
-    result = ContinousKLDivergence_metric(original_data, synthetic_data, metadata)
+    result = ContinousKLDivergence_metric(o_data, s_data, metadata)
     measures["ContinousKLDivergence"] = result["score"]
     measures["ContinousKLDivergence_time"] = result["time"]
 
-    result = DiscreteKLDivergence_metric(original_data, synthetic_data, metadata)
+    result = DiscreteKLDivergence_metric(o_data, s_data, metadata)
     measures["DiscreteKLDivergence"] = result["score"]
     measures["DiscreteKLDivergence_time"] = result["time"]
 
-    result = KSComplement_metric(original_data, synthetic_data, metadata)
+    result = KSComplement_metric(o_data, s_data, metadata)
     measures["KSComplement"] = result["score"]
     measures["KSComplement_time"] = result["time"]
 
-    result = CSTest_metric(original_data, synthetic_data, metadata)
+    result = CSTest_metric(o_data, s_data, metadata)
     measures["CSTest"] = result["score"]
     measures["CSTest_time"] = result["time"]
 
-    result = CrossClassification_metric(original_data, synthetic_data, metadata)
-    measures["CrossClassification"] = result["score"]
-    measures["CrossClassification_time"] = result["time"]
+    
+    result = CrossClassification_metric(o_data, s_data, dataset_meta, metadata)
+    measures["CrCl"] = result["score"]
+    measures["CrCl_time"] = result["time"]
 
     results_df = pd.DataFrame(data=measures, index=[0])
     return results_df
