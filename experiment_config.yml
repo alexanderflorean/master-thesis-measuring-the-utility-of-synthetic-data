@@ -106,52 +106,42 @@ ctgan_param:
     #        the numerical transformer, ``FloatFormatter``, to the min and max values seen
     #        during ``fit``. Defaults to ``True``.
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
-        Q0:
-          epochs: 3
-          batch_size: 100
-          pac: 10
-          discriminator_steps: 1
-          generator_lr: 0.05000
-          discriminator_lr: 0.05000
-          verbose: True #required (for capturing loss values)
-          cuda: True
-        Q1: # TODO: to be added or ignore, and remake above to Q1
-          epochs: 30
-          batch_size: 250
-          pac: 10
-          discriminator_steps: 2
-          generator_lr: 0.00500
-          discriminator_lr: 0.00500
-          verbose: True #required (for capturing loss values)
-          cuda: True
-        Q2:
-          epochs: 300
+        Q1:
+          epochs: 1
           batch_size: 500
           pac: 10
-          discriminator_steps: 5 
-          generator_lr: 0.00200
-          discriminator_lr: 0.00200
-          verbose: True #required (for capturing loss values)
-          cuda: True
-        Q3: 
-          epochs: 3000
-          batch_size: 1000
-          pac: 10
-          verbose: True #required (for capturing loss values)
-          discriminator_steps: 10 
+          discriminator_steps: 5
           generator_lr: 0.00002
           discriminator_lr: 0.00002
-          cuda: True
-        #Q31: lower alternative for D305 mnist dataset
-        #  epochs: 1000
-        #  batch_size: 600
-        #  pac: 10
-        #  verbose: True #required (for capturing loss values)
-        #  discriminator_steps: 8
-        #  generator_lr: 0.00002
-        #  discriminator_lr: 0.00002
-        #  cuda: True
-
+          verbose: true #required (for capturing loss values)
+          cuda: true
+        Q10:
+          epochs: 10
+          batch_size: 500
+          pac: 10
+          discriminator_steps: 5
+          generator_lr: 0.00002
+          discriminator_lr: 0.00002
+          verbose: true #required (for capturing loss values)
+          cuda: true
+        Q100:
+          epochs: 100
+          batch_size: 500
+          pac: 10
+          discriminator_steps: 5
+          generator_lr: 0.00002
+          discriminator_lr: 0.00002
+          verbose: true #required (for capturing loss values)
+          cuda: true
+        Q1000:
+          epochs: 1000
+          batch_size: 500
+          pac: 10
+          discriminator_steps: 5
+          generator_lr: 0.00002
+          discriminator_lr: 0.00002
+          verbose: true #required (for capturing loss values)
+          cuda: true
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
     num_sd: 10  # 10 how many copies of SDG and synthetic datasets to create for each setting 
@@ -166,8 +156,9 @@ ctgan_param:
 run_dataset: 
   - 'D0'    #Step: 2, 3(q0,1,2,3), working on 4# diabetes (~750 samples)
   - 'D1'    #Step: 2, 3(q0,1,2,3), working on 4# titanic  (~800 samples)
-  - 'D205' #Step: 2, 3(q0,1,2,3), working on 4# bank      (5% of 45 211 samples = 2260 )
-  - 'D305' #Step: 2, 3(q0,1,2 working on q3),  # mnist     (5% of 70 000 samples = 3500)
+  #- 'D205' #Step: 2, 3(q0,1,2,3), working on 4# bank      (5% of 45 211 samples = 2260 )
+  #- 'D305' #Step: 2, 3(q0,1,2 working on q3),  # mnist     (5% of 70 000 samples = 3500)
+  #- 'D405'
   #- 'D2'   #broken  # bank     (45 211 samples)
   #- 'D3'   #brodken # mnist    (70 000 samples)
 ...
