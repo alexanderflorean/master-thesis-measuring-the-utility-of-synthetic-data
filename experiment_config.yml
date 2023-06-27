@@ -27,6 +27,9 @@ folders:
 
 clf:    # Settings for classification modelling
     cv_folds: 10 # number of folds used in k-fold cross validation
+    # The number itterations of monte carlo cross-validation on testing
+    # the models trained on synthetic data
+    mccv_iter: 10  # number of monte carlo cross-validation iterations
     # choice of machine learning models to compare natively in pycaret compare_models(), using mostly sklearn
     ml_models: [
                 'lr',         # Logistic Regression
@@ -39,7 +42,7 @@ clf:    # Settings for classification modelling
                 #'gbc',        # Gradient Boosting Classifier
                 #'svm',        #NOTICE: PYCARET BUGG, do not use, said to be Support Vector Machines but returns SDGClassifier model
                 ### Below: Not-implemented Tuning_Grids ###
-                # 'ridge',    # Ridge Classifier TODO: some error shows up when ridge gets choosen
+                # 'ridge',    # Ridge Classifier 
                 #'gpc',        # Gaussian Process Classifier
                 #'dt',         # Decision Tree Classifier
                 #'et',         # Extra Trees Classifier
@@ -52,17 +55,17 @@ clf:    # Settings for classification modelling
     # The default tuning grids of pycaret can be found in https://github.com/pycaret/pycaret/blob/master/pycaret/containers/models/classification.py
     tuning_param:  
         #n_iter: 100             # (do not use when early_stopping is used) Number of iterations to run the tune_model, i.e. n_iter paramter
-        optimize: 'Accuracy'   # (dont change! cuml only have currently accuracy) The target metric to optimize against
+        optimize: 'Accuracy'   # (when using cuml, only have currently accuracy) The target metric to optimize against
         choose_better: True
         search_library: 'optuna'
         search_algorithm: 'tpe'
         early_stopping: 'Median'  # median stopping rule
-        early_stopping_max_iters: 1000 # Default=10, maximum of different candidates to try
+        early_stopping_max_iters: 200 # Default=10, maximum of different candidates to try
 
 
 # CTGAN hyperparameters
 ctgan_param:
-    # Possible hyperparameters for the model:
+    # possible Args for ctgan model, source: https://github.com/sdv-dev/SDV/blob/master/sdv/single_table/ctgan.py
     #    embedding_dim (int):
     #            Size of the random sample passed to the Generator. Defaults to 128.
     #    generator_dim (tuple or list of ints):
@@ -106,41 +109,89 @@ ctgan_param:
     #        the numerical transformer, ``FloatFormatter``, to the min and max values seen
     #        during ``fit``. Defaults to ``True``.
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
-        Q1:
-          epochs: 1
-          batch_size: 500
-          pac: 10
-          discriminator_steps: 5
-          generator_lr: 0.00002
-          discriminator_lr: 0.00002
-          verbose: true #required (for capturing loss values)
-          cuda: true
         Q10:
           epochs: 10
-          batch_size: 500
+          batch_size: 50
           pac: 10
-          discriminator_steps: 5
-          generator_lr: 0.00002
-          discriminator_lr: 0.00002
+          discriminator_steps: 2
+          generator_lr: 0.00001
+          discriminator_lr: 0.00001
           verbose: true #required (for capturing loss values)
           cuda: true
         Q100:
           epochs: 100
-          batch_size: 500
+          batch_size: 50
           pac: 10
-          discriminator_steps: 5
-          generator_lr: 0.00002
-          discriminator_lr: 0.00002
+          discriminator_steps: 2
+          generator_lr: 0.00001
+          discriminator_lr: 0.00001
+          verbose: true #required (for capturing loss values)
+          cuda: true
+        Q500:
+          epochs: 500
+          batch_size: 50
+          pac: 10
+          discriminator_steps: 2
+          generator_lr: 0.00001
+          discriminator_lr: 0.00001
           verbose: true #required (for capturing loss values)
           cuda: true
         Q1000:
           epochs: 1000
-          batch_size: 500
+          batch_size: 50
           pac: 10
-          discriminator_steps: 5
-          generator_lr: 0.00002
-          discriminator_lr: 0.00002
+          discriminator_steps: 2
+          generator_lr: 0.00001
+          discriminator_lr: 0.00001
           verbose: true #required (for capturing loss values)
+          cuda: true
+    # how many samples to generate by factor the sample size of the original dataset
+    sd_size_factor: 1   
+    num_sd: 10  # 10 how many copies of SDG and synthetic datasets to create for each setting 
+tvae_param:
+    # possible Args for tvae model, source: https://github.com/sdv-dev/SDV/blob/master/sdv/single_table/ctgan.py
+    #    metadata (sdv.metadata.SingleTableMetadata):
+    #        Single table metadata representing the data that this synthesizer will be used for.
+    #    enforce_min_max_values (bool):
+    #        Specify whether or not to clip the data returned by ``reverse_transform`` of
+    #        the numerical transformer, ``FloatFormatter``, to the min and max values seen
+    #        during ``fit``. Defaults to ``True``.
+    #    enforce_rounding (bool):
+    #        Define rounding scheme for ``numerical`` columns. If ``True``, the data returned
+    #        by ``reverse_transform`` will be rounded as in the original data. Defaults to ``True``.
+    #    embedding_dim (int):
+    #        Size of the random sample passed to the Generator. Defaults to 128.
+    #    compress_dims (tuple or list of ints):
+    #        Size of each hidden layer in the encoder. Defaults to (128, 128).
+    #    decompress_dims (tuple or list of ints):
+    #       Size of each hidden layer in the decoder. Defaults to (128, 128).
+    #    l2scale (int):
+    #        Regularization term. Defaults to 1e-5.
+    #    batch_size (int):
+    #        Number of data samples to process in each step.
+    #    epochs (int):
+    #        Number of training epochs. Defaults to 300.
+    #    loss_factor (int):
+    #        Multiplier for the reconstruction error. Defaults to 2.
+    #    cuda (bool or str):
+    #        If ``True``, use CUDA. If a ``str``, use the indicated device.
+    #        If ``False``, do not use cuda at all.
+    quality_params:     # list of parameters set to generate synthetic data of varying qualities
+        #Q10:
+        #  epochs: 10
+        #  batch_size: 50
+        #  cuda: true
+        #Q100:
+        #  epochs: 100
+        #  batch_size: 50
+        #  cuda: true
+        #Q500:
+        #  epochs: 500
+        #  batch_size: 50
+        #  cuda: true
+        Q1000:
+          epochs: 1000
+          batch_size: 50
           cuda: true
     # how many samples to generate by factor the sample size of the original dataset
     sd_size_factor: 1   
@@ -154,10 +205,10 @@ ctgan_param:
 #                       - item2
 #                       - item3
 run_dataset: 
-  - 'D0'    #Step: 2, 3(q0,1,2,3), working on 4# diabetes (~750 samples)
-  - 'D1'    #Step: 2, 3(q0,1,2,3), working on 4# titanic  (~800 samples)
-  #- 'D205' #Step: 2, 3(q0,1,2,3), working on 4# bank      (5% of 45 211 samples = 2260 )
-  #- 'D305' #Step: 2, 3(q0,1,2 working on q3),  # mnist     (5% of 70 000 samples = 3500)
+  #- 'D0'   # diabetes (~750 samples)
+  #- 'D1'   # titanic  (~800 samples)
+  #- 'D205'  # bank      (5% of 45 211 samples = 2260 )
+  - 'D305' # mnist     (5% of 70 000 samples = 3500)
   #- 'D405'
   #- 'D2'   #broken  # bank     (45 211 samples)
   #- 'D3'   #brodken # mnist    (70 000 samples)

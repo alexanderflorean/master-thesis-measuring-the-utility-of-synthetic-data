@@ -17,41 +17,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from utils import timefunction
-
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder, MinMaxScaler, Binarizer
-
-def create_preprocessing_pipeline(meta):
-    list_of_columntransformers = []
-
-    # if there is numeric features, use standard scaler
-    if meta['numeric_features'] !=None:
-        numerical_columns = meta['numeric_features'] 
-        numerical_transformer = Pipeline([
-            ('scaler', StandardScaler())
-        ])
-        list_of_columntransformers.append( ('num', numerical_transformer, numerical_columns) )
-
-    # if there is categorical features, use ohe
-    if meta['categorical_features'] !=None:
-        categorical_columns = meta['categorical_features']
-        categorical_transformer = Pipeline([
-            ('onehot', OneHotEncoder(handle_unknown='ignore'))
-        ])
-        list_of_columntransformers.append( ('cat', categorical_transformer, categorical_columns) )
-
-    # if there is ordinal features, use ordinal encoder
-    if meta['ordinal_features'] !=None:
-        for col in meta['ordinal_features'].keys():
-            ordinal_transformer = Pipeline([
-                (f'ordinal_{col}', OrdinalEncoder(categories=[meta['ordinal_features'][col]]))
-            ])
-            list_of_columntransformers.append( (f'ord_{col}', ordinal_transformer, [col] ) )
-
-    preprocessor = ColumnTransformer(list_of_columntransformers)
-    return preprocessor
-
+from preprocessing import create_preprocessing_pipeline
 
 ### Start - pMSE & S_pMSE
 def compute_propensity(
@@ -119,7 +85,7 @@ def compute_propensity(
     n_o_test = sum(y_test == 0)  # number of original samples in the test data
     n_s_test = sum(y_test == 1)  # number of synthetic samples in the test data
 
-    # set the target label as a categorical feature for the model and preprocessor
+    # copy and set the target label as a categorical feature for the model and preprocessor
     meta = deepcopy(dataset_meta)
     if meta['categorical_features'] != None:
         meta['categorical_features'].append(dataset_meta['target'])
@@ -152,7 +118,7 @@ def pmse(
 ) -> float:
     """
     Calculate the propensity mean-squared error.
-    Algorithm implemented as described in DOI: 10.1111/rssa.12358
+    Algorithm implemented as described in DOI: 10.29012/jpc.v1i1.568
 
     Parameters:
         -----------
@@ -555,21 +521,17 @@ def compute_all_pf_measures(
 
     # get number of clusters, using the original number of samples in the synthetic & original data,
     # and round it to an integer
-    g_0_5 = round((original_data.shape[0]) * 0.005)
+    #g_0_5 = round((original_data.shape[0]) * 0.005)
     g_1= round((original_data.shape[0])    * 0.010)
-    g_1_5= round((original_data.shape[0])  * 0.015)
+    #g_1_5= round((original_data.shape[0])  * 0.015)
     g_2= round((original_data.shape[0])    * 0.020)
     g_values = {
-        'G_0.5': g_0_5, 
-        'G_1': g_1, 
-        'G_1.5': g_1_5, 
-        'G_2': g_2,
+        #'G_0.5': g_0_5, 
+        #'G_1': g_1, 
+    #    'G_1.5': g_1_5, 
+    #    'G_2': g_2,
         }
     
-    # TODO: remove after testing pf measures
-    g_values = {}
-
-
     measures = {}
 
     measures["Dataset id"] = SD_id
@@ -597,14 +559,14 @@ def compute_all_pf_measures(
         #logg
         #print(f"Value: {result['score']}, Time: {result['time']}")
 
-    # quickfix for Sdmetrics, it doesnt handle specified dtypes e.g. no 'category', 'UInt8', etc.
+    # quickfix for Sdmetrics, some issues arise from specifying dtypes e.g. 'category', 'UInt8', etc.
     # Mainly for SDMetrics, HyperTransformer, in SDMetrics/sdmetrics/utils.py
     # seen in branch: 7754f13
     o_data = pd.read_csv(f"../data/real/{dataset_meta['filename']}")
     s_data = pd.read_csv(f"../data/synthetic/{SD_id}.csv")
 
     result = BNLogLikelihood_metric(
-        original_data=original_data, synthetic_data=synthetic_data, metadata=metadata
+        original_data=o_data, synthetic_data=s_data, metadata=metadata
     )
     measures["BNLogLikelihood"] = result["score"]
     measures["BNLogLikelihood_time"] = result["time"]
@@ -631,9 +593,117 @@ def compute_all_pf_measures(
     measures["CSTest"] = result["score"]
     measures["CSTest_time"] = result["time"]
 
-    result = CrossClassification_metric(o_data, s_data, dataset_meta, metadata)
-    measures["CrCl"] = result["score"]
-    measures["CrCl_time"] = result["time"]
+    #result = CrossClassification_metric(o_data, s_data, dataset_meta, metadata)
+    #measures["CrCl"] = result["score"]
+    #measures["CrCl_time"] = result["time"]
 
     results_df = pd.DataFrame(data=measures, index=[0])
     return results_df
+
+
+# Map the names to functions
+population_fidelity_measures = {
+    'pmse': pmse,
+    's_pmse': s_pmse,
+    'cluster_metric': cluster_metric,
+    'BNLogLikelihood_metric': BNLogLikelihood_metric,
+    'GMLogLikelihood_metric': GMLogLikelihood_metric,
+    'ContinousKLDivergence_metric': ContinousKLDivergence_metric,
+    'DiscreteKLDivergence_metric': DiscreteKLDivergence_metric,
+    'KSComplement_metric': KSComplement_metric,
+    'CSTest_metric': CSTest_metric,
+}
+
+def compute_pf_measure(measure_name, original_data, synthetic_data, dataset_meta, metadata, SD_id, num_clusters=None):
+    # Lookup the measure function
+    measure_func = population_fidelity_measures.get(measure_name)
+
+    if measure_func is None:
+        raise ValueError(f"Unknown measure: {measure_name}")
+    elif measure_name != 'pmse' or measure_name != 's_pmse' or measure_name != 'cluster_metric':
+        original_data = pd.read_csv(f"../data/real/{dataset_meta['filename']}")
+        synthetic_data = pd.read_csv(f"../data/synthetic/{SD_id}.csv")
+        return measure_func(original_data, synthetic_data, metadata)
+
+
+    # Call the function and return its result
+    if measure_name == "cluster_metric":
+        return measure_func(original_data, synthetic_data, dataset_meta, num_clusters)
+    else:
+        return measure_func(original_data, synthetic_data, dataset_meta, metadata)
+
+
+""" Might use, implements tuning and cross-validation to pmse
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import StratifiedKFold
+
+def compute_propensity(
+    original_data: pd.DataFrame,
+    synthetic_data: pd.DataFrame,
+    dataset_meta: dict,
+    random_state=None,
+) -> dict:
+
+    # Define the hyperparameters to tune
+    param_grid = {
+        'penalty': ['l1', 'l2', 'elasticnet', 'none'],
+        'tol': [1e-4, 1e-3, 1e-2, 0.1, 1],
+        'C': np.logspace(-4, 4, 20),
+        'fit_intercept': [True, False],
+        'class_weight': ['balanced', None],
+        'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
+        'max_iter': [1000]
+    }
+    classifier = LogisticRegression()
+
+    original_data = original_data.copy()
+    synthetic_data = synthetic_data.copy()
+
+    # Add target label 'S', i.e. if the sample is synthetic
+    original_data["S"] = 0
+    synthetic_data["S"] = 1
+
+    # Combine original_data and synthetic_data
+    combined_data = pd.concat([original_data, synthetic_data], axis=0)
+    Z = combined_data.drop(columns="S")  # remove target label
+    # Set as string for preprocessor
+    Z[dataset_meta['target']] = Z[dataset_meta['target']].astype(str)
+    Y = combined_data["S"]  # target label
+
+    # train-test split
+    X_train, X_test, y_train, y_test = train_test_split(
+        Z, Y, train_size=0.7, random_state=random_state
+    )
+
+    n_o_test = sum(y_test == 0)  # number of original samples in the test data
+    n_s_test = sum(y_test == 1)  # number of synthetic samples in the test data
+
+    # copy and set the target label as a categorical feature for the model and preprocessor
+    meta = deepcopy(dataset_meta)
+    if meta['categorical_features'] != None:
+        meta['categorical_features'].append(dataset_meta['target'])
+    else:
+        meta["categorical_features"]= [meta['target']]
+
+    # create and fit the preprocessor to the training data
+    preprocessor = create_preprocessing_pipeline(meta)
+    preprocessor.fit(X_train)
+
+    # Transform the data
+    X_train_transformed = preprocessor.transform(X_train)
+    X_test_transformed = preprocessor.transform(X_test)
+    
+    # Use StratifiedKFold for cross-validation
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
+
+    # Use RandomizedSearchCV to find the best hyperparameters for Logistic Regression
+    clf = RandomizedSearchCV(classifier, param_grid, random_state=random_state, n_iter=100, cv=cv)
+    clf.fit(X_train_transformed, y_train)
+
+    # Extract probabilities for class 1 (synthetic) on X_test datapoints
+    score =  clf.predict_proba(X_test_transformed)[:, 1]
+    score = np.log(score/(1-score))
+
+    # return the best hyperparameters along with other information
+    return {"score": score, "no": n_o_test, "ns": n_s_test, "best_params": clf.best_params_}
+"""

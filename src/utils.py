@@ -11,7 +11,7 @@ import cloudpickle
 import pandas as pd
 import yaml
 from pycaret.classification import setup
-from sdmetrics.utils import get_columns_from_metadata, get_type_from_column_meta
+#from sdmetrics.utils import get_columns_from_metadata, get_type_from_column_meta
 
 
 def getPicklesFromDir(path: str) -> list[dict]:
@@ -65,7 +65,7 @@ def run_pycaret_setup(data_path: str, setup_param: dict, meta: dict=None):
 
     return pycaret_setup
 
-
+'''
 def get_categorical_indices(data: pd.DataFrame, metadata: dict) -> list[int]:
     """Returns a list of indices of the categorical columns in the dataset"""
 
@@ -79,6 +79,7 @@ def get_categorical_indices(data: pd.DataFrame, metadata: dict) -> list[int]:
             indices.append(col_index)
 
     return indices
+'''
 
 
 def timefunction(func):

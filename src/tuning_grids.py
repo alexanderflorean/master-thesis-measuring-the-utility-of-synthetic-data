@@ -1,5 +1,4 @@
 import numpy as np
-from optuna.distributions import IntUniformDistribution
 
 class Grids:
 
@@ -147,7 +146,7 @@ class Grids:
         return {
             'split_criterion': [0, 1],   # [0 = 'gini', 1 = 'entropy']
             'n_estimators': list(range(100, 500, 10)),
-            'max_depth': list(range(10, 1000, 10)), #IntUniformDistribution(10, 1000, 10),
+            'max_depth': list(range(10, 1000, 10)), 
             'min_samples_split': [0.1, 0.25, 0.5, 0.75, 1.0],
             'min_samples_leaf': [0.1, 0.25, 0.5, 0.75, 0.9],
             'max_features': [1.0, 0.75, 0.5],   # alt 'log2'
@@ -161,7 +160,7 @@ class Grids:
         return {
             'criterion': ['gini', 'entropy', 'log_loss'],
             'n_estimators': list(range(100, 500, 10)),
-            'max_depth': list(range(10, 1000, 10)), #IntUniformDistribution(10, 1000, 10),
+            'max_depth': list(range(10, 1000, 10)), 
             'min_samples_split': [0.1, 0.25, 0.5, 0.75, 1.0],
             'min_samples_leaf': [0.25, 0.5, 0.75, 0.9],
             'max_features': ['auto', 'sqrt', 'log2', None],
