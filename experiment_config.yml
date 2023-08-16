@@ -109,35 +109,44 @@ ctgan_param:
     #        the numerical transformer, ``FloatFormatter``, to the min and max values seen
     #        during ``fit``. Defaults to ``True``.
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
-        Q10:
-          epochs: 10
-          batch_size: 50
-          pac: 10
-          discriminator_steps: 2
-          generator_lr: 0.00001
-          discriminator_lr: 0.00001
-          verbose: true #required (for capturing loss values)
-          cuda: true
-        Q100:
-          epochs: 100
-          batch_size: 50
-          pac: 10
-          discriminator_steps: 2
-          generator_lr: 0.00001
-          discriminator_lr: 0.00001
-          verbose: true #required (for capturing loss values)
-          cuda: true
-        Q500:
-          epochs: 500
-          batch_size: 50
-          pac: 10
-          discriminator_steps: 2
-          generator_lr: 0.00001
-          discriminator_lr: 0.00001
-          verbose: true #required (for capturing loss values)
-          cuda: true
-        Q1000:
-          epochs: 1000
+        #Q10:
+        #  epochs: 10
+        #  batch_size: 50
+        #  pac: 10
+        #  discriminator_steps: 2
+        #  generator_lr: 0.00001
+        #  discriminator_lr: 0.00001
+        #  verbose: true #required (for capturing loss values)
+        #  cuda: true
+        #Q100:
+        #  epochs: 100
+        #  batch_size: 50
+        #  pac: 10
+        #  discriminator_steps: 2
+        #  generator_lr: 0.00001
+        #  discriminator_lr: 0.00001
+        #  verbose: true #required (for capturing loss values)
+        #  cuda: true
+        #Q500:
+        #  epochs: 500
+        #  batch_size: 50
+        #  pac: 10
+        #  discriminator_steps: 2
+        #  generator_lr: 0.00001
+        #  discriminator_lr: 0.00001
+        #  verbose: true #required (for capturing loss values)
+        #  cuda: true
+        #Q1000:
+        #  epochs: 1000
+        #  batch_size: 50
+        #  pac: 10
+        #  discriminator_steps: 2
+        #  generator_lr: 0.00001
+        #  discriminator_lr: 0.00001
+        #  verbose: true #required (for capturing loss values)
+        #  cuda: true
+        Q1500:
+          epochs: 1500
           batch_size: 50
           pac: 10
           discriminator_steps: 2
@@ -177,20 +186,24 @@ tvae_param:
     #        If ``True``, use CUDA. If a ``str``, use the indicated device.
     #        If ``False``, do not use cuda at all.
     quality_params:     # list of parameters set to generate synthetic data of varying qualities
-        #Q10:
-        #  epochs: 10
+        Q10:
+          epochs: 10
+          batch_size: 50
+          cuda: true
+        Q100:
+          epochs: 100
+          batch_size: 50
+          cuda: true
+        Q500:
+          epochs: 500
+          batch_size: 50
+          cuda: true
+        #Q1000:
+        #  epochs: 1000
         #  batch_size: 50
         #  cuda: true
-        #Q100:
-        #  epochs: 100
-        #  batch_size: 50
-        #  cuda: true
-        #Q500:
-        #  epochs: 500
-        #  batch_size: 50
-        #  cuda: true
-        Q1000:
-          epochs: 1000
+        Q1500:
+          epochs: 1500
           batch_size: 50
           cuda: true
     # how many samples to generate by factor the sample size of the original dataset
@@ -205,11 +218,11 @@ tvae_param:
 #                       - item2
 #                       - item3
 run_dataset: 
-  #- 'D0'   # diabetes (~750 samples)
-  #- 'D1'   # titanic  (~800 samples)
-  #- 'D205'  # bank      (5% of 45 211 samples = 2260 )
+  - 'D0'   # diabetes (~750 samples)
+  - 'D1'   # titanic  (~800 samples)
+  - 'D205'  # bank      (5% of 45 211 samples = 2260 )
   - 'D305' # mnist     (5% of 70 000 samples = 3500)
-  #- 'D405'
+  - 'D405' # adult
   #- 'D2'   #broken  # bank     (45 211 samples)
   #- 'D3'   #brodken # mnist    (70 000 samples)
 ...
