@@ -1,13 +1,16 @@
+import pandas as pd
+
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder, MinMaxScaler, Binarizer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
 
 def create_preprocessing_pipeline(meta):
     list_of_columntransformers = []
 
     # if there is numeric features, use standard scaler
     if meta['numeric_features'] !=None:
-        numerical_columns = meta['numeric_features'] 
+        #ensure there are no duplicates
+        numerical_columns = list(set(meta['numeric_features']))
         numerical_transformer = Pipeline([
             ('scaler', StandardScaler())
         ])
@@ -15,9 +18,10 @@ def create_preprocessing_pipeline(meta):
 
     # if there is categorical features, use ohe
     if meta['categorical_features'] !=None:
-        categorical_columns = meta['categorical_features']
+        #ensure there are no duplicates
+        categorical_columns = list(set(meta['categorical_features']))
         categorical_transformer = Pipeline([
-            ('onehot', OneHotEncoder(handle_unknown='ignore'))
+            ('onehot', OneHotEncoder(handle_unknown='ignore', sparse=False))
         ])
         list_of_columntransformers.append( ('cat', categorical_transformer, categorical_columns) )
 
@@ -31,3 +35,14 @@ def create_preprocessing_pipeline(meta):
 
     preprocessor = ColumnTransformer(list_of_columntransformers)
     return preprocessor
+
+def compute_zscore(df, columns):
+    df = df.copy()
+    for col in columns:
+        df[col] = (df[col] - df[col].mean()) / df[col].std(ddof=0)
+    return df
+
+def one_hot_encode(df, columns):
+    concat_df = pd.concat([pd.get_dummies(df[col], drop_first=True, prefix=col) for col in columns], axis=1, copy=True)
+    one_hot_cols = concat_df.columns
+    return concat_df, one_hot_cols

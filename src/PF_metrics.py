@@ -1,3 +1,7 @@
+"""
+All measures used in the experiment are defined in this file.
+"""
+
 from math import sqrt
 from copy import deepcopy
 
@@ -23,7 +27,7 @@ from preprocessing import create_preprocessing_pipeline
 def compute_propensity(
     original_data: pd.DataFrame,
     synthetic_data: pd.DataFrame,
-    dataset_meta: dict,
+    custom_metadata: dict,
     random_state=None,
 ) -> dict:
     """
@@ -74,7 +78,7 @@ def compute_propensity(
     combined_data = pd.concat([original_data, synthetic_data], axis=0)
     Z = combined_data.drop(columns="S")  # remove target label
     # Set as string for preprocessor
-    Z[dataset_meta['target']] = Z[dataset_meta['target']].astype(str)
+    Z[custom_metadata['target']] = Z[custom_metadata['target']].astype(str)
     Y = combined_data["S"]  # target label
 
     # train-test split
@@ -86,9 +90,9 @@ def compute_propensity(
     n_s_test = sum(y_test == 1)  # number of synthetic samples in the test data
 
     # copy and set the target label as a categorical feature for the model and preprocessor
-    meta = deepcopy(dataset_meta)
+    meta = deepcopy(custom_metadata)
     if meta['categorical_features'] != None:
-        meta['categorical_features'].append(dataset_meta['target'])
+        meta['categorical_features'].append(custom_metadata['target'])
     else:
         meta["categorical_features"]= [meta['target']]
 
@@ -114,7 +118,7 @@ def compute_propensity(
 def pmse(
     original_data: pd.DataFrame,
     synthetic_data: pd.DataFrame,
-    dataset_meta: dict,
+    custom_metadata: dict,
 ) -> float:
     """
     Calculate the propensity mean-squared error.
@@ -131,7 +135,7 @@ def pmse(
 
         float: pMSE score
     """
-    prop_dict = compute_propensity(original_data, synthetic_data, dataset_meta)
+    prop_dict = compute_propensity(original_data, synthetic_data, custom_metadata)
 
     propensity = prop_dict["score"]
 
@@ -149,7 +153,7 @@ def pmse(
 def s_pmse(
     original_data: pd.DataFrame,
     synthetic_data: pd.DataFrame,
-    dataset_meta: dict,
+    custom_metadata: dict,
 ) -> float:
     """
     Calculate the standardized propensity mean-squared error
@@ -170,7 +174,7 @@ def s_pmse(
     # number of predictors of the combined dataset (i.e. target 'S')
     k = original_data.shape[1] + 1 
 
-    prop_dict = compute_propensity(original_data, synthetic_data, dataset_meta)
+    prop_dict = compute_propensity(original_data, synthetic_data, custom_metadata)
 
     propensity = prop_dict["score"]
 
@@ -273,44 +277,47 @@ def cluster_metric(
     )
 
     dataset_meta = deepcopy(meta)
+    cat_features = dataset_meta['categorical_features']
 
     # Set target label as categorical feature for preprocessing
-    if dataset_meta["categorical_features"] != None:
-        dataset_meta["categorical_features"].append(dataset_meta['target'])
+    if cat_features != None:
+        cat_features.append(dataset_meta['target'])
+        dataset_meta['categorical_features'].append(dataset_meta['target'])
     else:
-        dataset_meta["categorical_features"] = [dataset_meta["target"]]
+        cat_features = [dataset_meta["target"]]
+        dataset_meta['categorical_features'] = [dataset_meta['target']]
+
+    if dataset_meta['ordinal_features'] != None:
+        cat_features.extend(list(dataset_meta['ordinal_features'].keys()))
+
     #convert target label to string for preprocessing
     combined_data[dataset_meta['target']] = combined_data[dataset_meta['target']].astype(str)
+    #ensure there are no duplicate features
+    cat_features = list(set(cat_features))
 
-    if dataset_meta['categorical_features'] == None and dataset_meta['ordinal_features'] == None:
+    if cat_features == None:
         # Contains only numerical cols, standardize the combined data
         scaled_combined_data = StandardScaler().fit_transform(combined_data)
         # Cluster the scaled data with sklearn.KMeans()
         kmeans = KMeans(n_clusters=num_clusters, random_state=random_state).fit(
             scaled_combined_data
         )  # expects shape (n_samples, n_features)
-        cluster_labels = kmeans.labels_  # returns the
+        cluster_labels = kmeans.labels_  
 
-    #elif len(dataset_meta['categorical_features']) == combined_data.shape[1]:
-    #    # TODO: use k-modes
-    #    raise NotImplementedError(
-    #        "Case: all columns are categorical, solution: use k-modes, however it is not implmented yet."
-    #    )
-
+    elif len(cat_features) == combined_data.shape[1]:
+        # TODO: encode features and use k-modes
+        raise NotImplementedError(
+            "Case: all columns are categorical, solution: use k-modes, however it is not implmented yet."
+        )
     else:
-        # Find the categorical column indices after combination
-        categorical_indices = [
-            i for i, col in enumerate(combined_data.columns) if col in dataset_meta['categorical_features']
-        ]
 
-        # Initialize KPrototypes with the desired number of clusters
-        kproto = KPrototypes(n_clusters=num_clusters, init='Cao', random_state=random_state, n_jobs=-1)
-
-        # Transform the data
         preprocessor = create_preprocessing_pipeline(dataset_meta)
-        combined_data_transformed = preprocessor.fit_transform(combined_data)
+        categorical_indices = [combined_data.columns.get_loc(col) for col in cat_features]
+        transformed_data = preprocessor.fit_transform(combined_data)
+        # Initialize KPrototypes with the desired number of clusters
+        kproto = KPrototypes(n_clusters=num_clusters, init='Huang', random_state=random_state, n_jobs=-1, max_iter=100, n_init=100, verbose=1)
         # Fit the KPrototypes model to the transformed training data
-        kproto.fit(combined_data_transformed, categorical=categorical_indices)
+        kproto.fit(transformed_data, categorical=categorical_indices)
 
         # Assign the cluster labels to the data points
         cluster_labels = kproto.labels_
@@ -347,63 +354,30 @@ def cluster_metric(
     return Uc
 
 ### End - Cluster analysis
-def convert_for_discrete_metadata(metadata: dict) -> dict:
-    """
-    NOTE: SDMetrics considers only evaulates boolean, categorical columns for measures that should
-    use the discrete values.
-    Meaning it ignores the other "incompatible" column types, such as columns with integer values.
-    Example, in following implementation, line 27: 
-    https://github.com/sdv-dev/SDMetrics/blob/8b79accdf1ceb83780b20e8d53a66e0b7f68a54e/sdmetrics/single_table/bayesian_network.py#L27
-
-    However, this results in a limited Bayesian Networks model that misses out on valuable data,
-    as it is described to take discrete values, which includes integer values within a finite range.
-
-    The Quickfix: to circumvent this, we copy the metadata, and redefine the columns with discrete values, i.e. integers, to 
-    be categorical. This might induce issues with integer features that actually have 
-    infinitely large range of values. However, in the case of this study, this does not occur.
-
-    As such, the following numeric datatypes are converted to categorical:
-    * UInt8: (0-255)
-    * UInt16: (0-65535)
-        Although the range is large, most of the datatypes in this study have ranges slightly above UInt8, 
-        which is why this is included here.
-    * Int8: (-128-127)
-    """
-    meta_dict_cpy = deepcopy(metadata)
-    # The datatypes to convert to categorical in the metadata
-    dtypes_to_cat = ['uint8', 'uint16', 'int8']
-    for col in meta_dict_cpy['columns']:
-        if meta_dict_cpy['columns'][col]['sdtype'] == 'numerical':
-            dtype = str.lower(meta_dict_cpy['columns'][col]['computer_representation'])
-            if dtype in dtypes_to_cat:
-                meta_dict_cpy['columns'][col] = {'sdtype': 'categorical'}
-    return meta_dict_cpy
-
 
 ### Start - Likehood measures:  Looks at the likelihood of the synthetic data belonging to the real data.
 @timefunction
 def BNLogLikelihood_metric(
-    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, metadata: dict
+    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, sdv_metadata: dict
 ) -> float:
     """Returns the average log of BN-Likelihood of all synthetic samples
     Range[-inf, 1]
     NOTE: this metric does not accept missing values.
-
     NOTE: SDMetrics only evaulates boolean, categorical columns using this measure. 
-    However, this is extended to in8, uint8 and uint16. See doc for method: convert_for_discrete_metadata()
     
     For more details on the sdmetric implementation, see:
         https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/data-likelihood/bnloglikelihood
     """
-    meta_dict_cpy = convert_for_discrete_metadata(metadata)
 
     return BNLogLikelihood.compute(
-        real_data=original_data, synthetic_data=synthetic_data, metadata=meta_dict_cpy
+        real_data=original_data, 
+        synthetic_data=synthetic_data, 
+        metadata=sdv_metadata
     )
 
 @timefunction
 def GMLogLikelihood_metric(
-    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, metadata: dict
+    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, sdv_metadata: dict
 ) -> float:
     """Uses multiple Gaussian mixtures models to learn the distribution of the real data to then returns
     the average likelihood for all samples on wether they belongs to the real data or not.
@@ -418,7 +392,7 @@ def GMLogLikelihood_metric(
 
     """
     return GMLogLikelihood.compute(
-        real_data=original_data, synthetic_data=synthetic_data, metadata=metadata
+        real_data=original_data, synthetic_data=synthetic_data, metadata=sdv_metadata
     )
 
 
@@ -428,39 +402,39 @@ def GMLogLikelihood_metric(
 ### Start - Difference in Empirical distributions type measures
 @timefunction
 def ContinousKLDivergence_metric(
-    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, metadata: dict
+    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, sdv_metadata: dict
 ) -> float:
     return ContinuousKLDivergence.compute(
-        real_data=original_data, synthetic_data=synthetic_data, metadata=metadata
+        real_data=original_data, synthetic_data=synthetic_data, metadata=sdv_metadata
     )
 
 @timefunction
 def DiscreteKLDivergence_metric(
-    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, metadata: dict
+    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, sdv_metadata: dict
 ) -> float:
     return DiscreteKLDivergence.compute(
-        real_data=original_data, synthetic_data=synthetic_data, metadata=metadata
+        real_data=original_data, synthetic_data=synthetic_data, metadata=sdv_metadata
     )
 
 
 @timefunction
 def KSComplement_metric(
-    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, metadata: dict
+    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, sdv_metadata: dict
 ) -> float:
     # Documentation: https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/kscomplement
     return KSComplement.compute(
-        real_data=original_data, synthetic_data=synthetic_data, metadata=metadata
+        real_data=original_data, synthetic_data=synthetic_data, metadata=sdv_metadata
     )
 
 
 @timefunction
 def CSTest_metric(
-    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, metadata: dict
+    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, sdv_metadata: dict
 ) -> float:
     # Documentation: https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/cstest
     # Might be better to use the TVComplement measure, as CSTest is mentioned to have some issues
     return CSTest.compute(
-        real_data=original_data, synthetic_data=synthetic_data, metadata=metadata
+        real_data=original_data, synthetic_data=synthetic_data, metadata=sdv_metadata
     )
 
 
@@ -468,30 +442,74 @@ def CSTest_metric(
 
 
 ### Start - Cross-Classification measure
+def compare_and_filter_dataframes(main_df: pd.DataFrame, second_df: pd.DataFrame, categorical_cols):
+    """
+    Compares the unique values of specified categorical columns in two dataframes.
+    If a value in the second dataframe doesn't exist in the main dataframe, it removes the rows with that value.
+
+    Parameters:
+        main_df: The main DataFrame object.
+        second_df: The secondary DataFrame to compare and filter.
+        categorical_cols: A list of column names that are categorical to which will be filtered in second_df.
+    Returns: 
+        The original and filtered dataframes.
+    """
+    second_df = second_df.copy()
+
+    for col in categorical_cols:
+        
+        # Find unique values for the current column
+        main_unique_values = set(main_df[col].unique())
+        second_unique_values = set(second_df[col].unique())
+
+        # Find values that exist in the second dataframe but not in the main dataframe
+        diff_values = second_unique_values - main_unique_values
+
+        # If there are such values, remove the corresponding rows from the second dataframe
+        if diff_values:
+            # print(f"To be dropped: {diff_values}")
+
+            # isin(diff_values) will return a Boolean Series where True indicates that 
+            # the row in second_df contains a value in diff_values. 
+            # The ~ operator is used to negate this Boolean Series, 
+            # so we are selecting rows where the value is NOT in diff_values.
+            second_df = second_df[~second_df[col].isin(diff_values)]
+
+    # Return the original (main) and filtered (second) dataframes
+    return second_df
+
 @timefunction
 def CrossClassification_metric(
-    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, dataset_metadata, metadata: dict
+    original_data: pd.DataFrame, synthetic_data: pd.DataFrame, dataset_metadata: dict, sdv_metadata: dict
 ) -> float:
-    # get categorical columns,
-    # identify if they are binary or multiclass,
-    # run respective MLEfficacy algorithm, returns the F1-score
 
     results = []
-    cat_ord_features = dataset_metadata['categorical_features'] if dataset_metadata['categorical_features'] != None else []
-    cat_ord_features.extend( list(dataset_metadata['ordinal_features'].keys()) if dataset_metadata['ordinal_features'] != None else [])
-    cat_ord_features.append( dataset_metadata['target'])
+    # get categorical columns,
+    target_features = dataset_metadata['categorical_features'] if dataset_metadata['categorical_features'] != None else []
+    target_features.extend( list(dataset_metadata['ordinal_features'].keys()) if dataset_metadata['ordinal_features'] != None else [])
+    target_features.append( dataset_metadata['target'])
+    # ensures no duplicates exists
+    target_features = list(set(target_features))
 
+    # SDV MLPClassifiers uses onehotencoder to transform categorical data. 
+    # However, they do not consider categorical values that exists in the test data but
+    # not in the train data, which till inibit the measure.
+    # The following method is a quickfix for this.
+    synthetic_data = compare_and_filter_dataframes(original_data, synthetic_data, target_features)
 
     for col in original_data.columns:
-        if col in cat_ord_features:
+        if col in target_features:
+            # identify if target label is binary or multiclass
             target_data = original_data[col]
             uniques = target_data.nunique()
+
+            # run respective MLEfficacy algorithm which returns the F1-score
             if uniques == 2:
                 # Documentation: https://docs.sdv.dev/sdmetrics/metrics/metrics-in-beta/ml-efficacy-single-table/binary-classification
                 efficacy = BinaryMLPClassifier.compute(
                     test_data=original_data,
                     train_data=synthetic_data,
-                    metadata=metadata,
+                    metadata=sdv_metadata,
                     target=col,
                 )
             else:
@@ -499,14 +517,13 @@ def CrossClassification_metric(
                 efficacy = MulticlassMLPClassifier.compute(
                     test_data=original_data,
                     train_data=synthetic_data,
-                    metadata=metadata,
+                    metadata=sdv_metadata,
                     target=col,
                 )
 
             results.append(efficacy)
 
     return np.mean(results)
-
 ### End - Cross-Classification measure
 
 
@@ -514,22 +531,18 @@ def CrossClassification_metric(
 def compute_all_pf_measures(
     original_data: pd.DataFrame,
     synthetic_data: pd.DataFrame,
-    dataset_meta: dict,     # custom metadata
-    metadata: dict,         # SDV metadata
+    custom_metadata: dict,     # custom metadata
+    sdv_metadata: dict,         # SDV metadata
     SD_id: str,
 ) -> pd.DataFrame:
 
     # get number of clusters, using the original number of samples in the synthetic & original data,
     # and round it to an integer
-    #g_0_5 = round((original_data.shape[0]) * 0.005)
     g_1= round((original_data.shape[0])    * 0.010)
-    #g_1_5= round((original_data.shape[0])  * 0.015)
-    g_2= round((original_data.shape[0])    * 0.020)
+    # g_2= round((original_data.shape[0])    * 0.020)
     g_values = {
-        #'G_0.5': g_0_5, 
-        #'G_1': g_1, 
-    #    'G_1.5': g_1_5, 
-    #    'G_2': g_2,
+        'G_1': g_1,
+        #'G_2': g_2,
         }
     
     measures = {}
@@ -537,173 +550,64 @@ def compute_all_pf_measures(
     measures["Dataset id"] = SD_id
     measures["SDG"] = SD_id.split('_')[0]
 
-    result = pmse(original_data=original_data, synthetic_data=synthetic_data, dataset_meta=dataset_meta)
+    result = pmse(original_data=original_data, synthetic_data=synthetic_data, custom_metadata=custom_metadata)
     measures["pMSE"] = result["score"]
     measures["pMSE_time"] = result["time"]
 
-    result = s_pmse(original_data=original_data, synthetic_data=synthetic_data, dataset_meta=dataset_meta)
+    result = s_pmse(original_data=original_data, synthetic_data=synthetic_data, custom_metadata=custom_metadata)
     measures["s_pMSE"] = result["score"]
     measures["s_pMSE_time"] = result["time"]
 
     for g in g_values:
-        #Logg
-        #print(f"Cluster group: {g}, with {g_values[g]} clusters")
         result = cluster_metric(
             original_data=original_data,
             synthetic_data=synthetic_data,
             num_clusters= g_values[g],
-            meta=dataset_meta
+            meta=custom_metadata
         )
         measures[f"Cluster_{g}"] = result["score"]
         measures[f"Cluster_{g}_time"] = result["time"]
         #logg
-        #print(f"Value: {result['score']}, Time: {result['time']}")
+        print(f"N_Clusters: {g_values[g]}")
+        print(f"Value: {result['score']}, Time: {result['time']}")
 
     # quickfix for Sdmetrics, some issues arise from specifying dtypes e.g. 'category', 'UInt8', etc.
     # Mainly for SDMetrics, HyperTransformer, in SDMetrics/sdmetrics/utils.py
-    # seen in branch: 7754f13
-    o_data = pd.read_csv(f"../data/real/{dataset_meta['filename']}")
+    # seen in git-branch: 7754f13
+    o_data = pd.read_csv(f"../data/real/{custom_metadata['filename']}")
     s_data = pd.read_csv(f"../data/synthetic/{SD_id}.csv")
 
     result = BNLogLikelihood_metric(
-        original_data=o_data, synthetic_data=s_data, metadata=metadata
+        original_data=o_data, synthetic_data=s_data, sdv_metadata=sdv_metadata
     )
     measures["BNLogLikelihood"] = result["score"]
     measures["BNLogLikelihood_time"] = result["time"]
 
     result = GMLogLikelihood_metric(
-        original_data=o_data, synthetic_data=s_data, metadata=metadata
+        original_data=o_data, synthetic_data=s_data, sdv_metadata=sdv_metadata
     )
     measures["GMLogLikelihood"] = result["score"]
     measures["GMLogLikelihood_time"] = result["time"]
 
-    result = ContinousKLDivergence_metric(o_data, s_data, metadata)
+    result = ContinousKLDivergence_metric(o_data, s_data, sdv_metadata)
     measures["ContinousKLDivergence"] = result["score"]
     measures["ContinousKLDivergence_time"] = result["time"]
 
-    result = DiscreteKLDivergence_metric(o_data, s_data, metadata)
+    result = DiscreteKLDivergence_metric(o_data, s_data, sdv_metadata)
     measures["DiscreteKLDivergence"] = result["score"]
     measures["DiscreteKLDivergence_time"] = result["time"]
 
-    result = KSComplement_metric(o_data, s_data, metadata)
+    result = KSComplement_metric(o_data, s_data, sdv_metadata)
     measures["KSComplement"] = result["score"]
     measures["KSComplement_time"] = result["time"]
 
-    result = CSTest_metric(o_data, s_data, metadata)
+    result = CSTest_metric(o_data, s_data, sdv_metadata)
     measures["CSTest"] = result["score"]
     measures["CSTest_time"] = result["time"]
 
-    #result = CrossClassification_metric(o_data, s_data, dataset_meta, metadata)
-    #measures["CrCl"] = result["score"]
-    #measures["CrCl_time"] = result["time"]
+    result = CrossClassification_metric(o_data, s_data, dataset_metadata=custom_metadata, sdv_metadata=sdv_metadata)
+    measures["CrCl"] = result["score"]
+    measures["CrCl_time"] = result["time"]
 
     results_df = pd.DataFrame(data=measures, index=[0])
     return results_df
-
-
-# Map the names to functions
-population_fidelity_measures = {
-    'pmse': pmse,
-    's_pmse': s_pmse,
-    'cluster_metric': cluster_metric,
-    'BNLogLikelihood_metric': BNLogLikelihood_metric,
-    'GMLogLikelihood_metric': GMLogLikelihood_metric,
-    'ContinousKLDivergence_metric': ContinousKLDivergence_metric,
-    'DiscreteKLDivergence_metric': DiscreteKLDivergence_metric,
-    'KSComplement_metric': KSComplement_metric,
-    'CSTest_metric': CSTest_metric,
-}
-
-def compute_pf_measure(measure_name, original_data, synthetic_data, dataset_meta, metadata, SD_id, num_clusters=None):
-    # Lookup the measure function
-    measure_func = population_fidelity_measures.get(measure_name)
-
-    if measure_func is None:
-        raise ValueError(f"Unknown measure: {measure_name}")
-    elif measure_name != 'pmse' or measure_name != 's_pmse' or measure_name != 'cluster_metric':
-        original_data = pd.read_csv(f"../data/real/{dataset_meta['filename']}")
-        synthetic_data = pd.read_csv(f"../data/synthetic/{SD_id}.csv")
-        return measure_func(original_data, synthetic_data, metadata)
-
-
-    # Call the function and return its result
-    if measure_name == "cluster_metric":
-        return measure_func(original_data, synthetic_data, dataset_meta, num_clusters)
-    else:
-        return measure_func(original_data, synthetic_data, dataset_meta, metadata)
-
-
-""" Might use, implements tuning and cross-validation to pmse
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.model_selection import StratifiedKFold
-
-def compute_propensity(
-    original_data: pd.DataFrame,
-    synthetic_data: pd.DataFrame,
-    dataset_meta: dict,
-    random_state=None,
-) -> dict:
-
-    # Define the hyperparameters to tune
-    param_grid = {
-        'penalty': ['l1', 'l2', 'elasticnet', 'none'],
-        'tol': [1e-4, 1e-3, 1e-2, 0.1, 1],
-        'C': np.logspace(-4, 4, 20),
-        'fit_intercept': [True, False],
-        'class_weight': ['balanced', None],
-        'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
-        'max_iter': [1000]
-    }
-    classifier = LogisticRegression()
-
-    original_data = original_data.copy()
-    synthetic_data = synthetic_data.copy()
-
-    # Add target label 'S', i.e. if the sample is synthetic
-    original_data["S"] = 0
-    synthetic_data["S"] = 1
-
-    # Combine original_data and synthetic_data
-    combined_data = pd.concat([original_data, synthetic_data], axis=0)
-    Z = combined_data.drop(columns="S")  # remove target label
-    # Set as string for preprocessor
-    Z[dataset_meta['target']] = Z[dataset_meta['target']].astype(str)
-    Y = combined_data["S"]  # target label
-
-    # train-test split
-    X_train, X_test, y_train, y_test = train_test_split(
-        Z, Y, train_size=0.7, random_state=random_state
-    )
-
-    n_o_test = sum(y_test == 0)  # number of original samples in the test data
-    n_s_test = sum(y_test == 1)  # number of synthetic samples in the test data
-
-    # copy and set the target label as a categorical feature for the model and preprocessor
-    meta = deepcopy(dataset_meta)
-    if meta['categorical_features'] != None:
-        meta['categorical_features'].append(dataset_meta['target'])
-    else:
-        meta["categorical_features"]= [meta['target']]
-
-    # create and fit the preprocessor to the training data
-    preprocessor = create_preprocessing_pipeline(meta)
-    preprocessor.fit(X_train)
-
-    # Transform the data
-    X_train_transformed = preprocessor.transform(X_train)
-    X_test_transformed = preprocessor.transform(X_test)
-    
-    # Use StratifiedKFold for cross-validation
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
-
-    # Use RandomizedSearchCV to find the best hyperparameters for Logistic Regression
-    clf = RandomizedSearchCV(classifier, param_grid, random_state=random_state, n_iter=100, cv=cv)
-    clf.fit(X_train_transformed, y_train)
-
-    # Extract probabilities for class 1 (synthetic) on X_test datapoints
-    score =  clf.predict_proba(X_test_transformed)[:, 1]
-    score = np.log(score/(1-score))
-
-    # return the best hyperparameters along with other information
-    return {"score": score, "no": n_o_test, "ns": n_s_test, "best_params": clf.best_params_}
-"""
