@@ -37,19 +37,3 @@ python -m ipykernel install --user --name master --display-name "Python 3.9.16 (
 The file `./config/experiment_settings.yml` contains all the global settings for all runs of the experiment,  
 such as the folders for each files, or for choosing how many synthetic datasets to generat, or how large each of   
 them should be.
-
-### Logs
-
-The system uses the mlflow library to manage all the data, it is then possible to view them through an html portal,   
-to do this run the following comand in the shell:    
-
-change directory to ./notebooks/  
-`cd ./notebooks/`
-
-activate the conda environmnent   
-` conda activate master`
-
-run the command to start the frontend-log server,    
-`mlflow ui`
-
-then open web-browser en use the link provided by mlflow.  
