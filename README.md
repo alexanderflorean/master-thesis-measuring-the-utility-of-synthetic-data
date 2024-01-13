@@ -1,8 +1,9 @@
-# Master thesis: Examining the suitability of Population Fidelity measures for classification problems
-By: Alexander Florean
+# Master thesis: Measuring the Utility of Synthetic Data
+### An Empirical Evaluation of Population Fidelity Measures as Indicators of Synthetic Data Utility in Classification Tasks
+Alexander Florean
 
 ## Project structure
-master-thesis-vt23/  
+./  
 |- data/		   # data for the project   
 |- logs/		   # contains the log file for system logging  
 |- notebooks/	   # notebooks for the experiments and implementation  
